@@ -1,19 +1,32 @@
 'use client'
 import {useEffect, useState} from "react";
-import {Row} from "read-excel-file";
-import {FileListItem, ProcessSpeedgoXlsx} from "@features/SpeedgoOptimizer";
+import {FileListItem, PreviewTable, ProcessSpeedgoXlsx} from "@features/SpeedgoOptimizer";
 import {useDropzone} from "react-dropzone";
 import {CloudArrowUpIcon} from "@heroicons/react/16/solid";
 import {Button} from "@components/button";
 import {Text} from "@components/text";
 import {useIntlayer} from "next-intlayer";
 import {DictionaryKeys} from "@intlayer/core";
+import {RowData} from "@tanstack/table-core";
 
 export default function Home() {
   const [files, setFiles] = useState<File[]>([]);
   const [previewFile, setPreviewFile] = useState<File | null>(null);
-  const [previewRows, setPreviewRows] = useState<Row[]>([]);
+  const [previewRows, setPreviewRows] = useState<RowData[]>([]);
   const content = useIntlayer("home" as DictionaryKeys)
+
+  const onDrop = (acceptedFiles: File[]) => {
+    //TODO: throw error when more than 3 files are selected
+    setFiles(prevFiles => [...prevFiles, ...acceptedFiles]);
+  };
+
+  const {getRootProps, getInputProps} = useDropzone({
+    accept: {
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
+    },
+    maxFiles: 3,
+    onDrop
+  });
 
   useEffect(() => {
     if (previewFile) {
@@ -23,22 +36,45 @@ export default function Home() {
     }
   }, [previewFile])
 
-  const onDrop = (acceptedFiles: File[]) => {
-    //TODO: throw error when more than 3 files are selected
-    setFiles(prevFiles => [...prevFiles, ...acceptedFiles]);
-    // ProcessSpeedgoXlsx(acceptedFiles[0]).then(rows => console.log(rows))
-  };
+  const headers = [
+    {
+      id: 'col1',
+      column: {
+        columnDef: {
+          header: 'Column 1 Header'
+        }
+      }
+    },
+    {
+      id: 'col2',
+      column: {
+        columnDef: {
+          header: 'Column 2 Header'
+        }
+      }
+    },
+    {
+      id: 'col3',
+      column: {
+        columnDef: {
+          header: 'Column 3 Header'
+        }
+      }
+    }
+  ]
+
+  const onDeleteFile = (file: File) => {
+    setFiles(files.filter(f => f !== file));
+    if (previewFile === file) {
+      setPreviewFile(null);
+      setPreviewRows([])
+    }
+  }
+
   const onPreviewFile = (file: File) => {
     setPreviewFile(file);
     // const rows = await ProcessSpeedgoXlsx(file)
   }
-  const {getRootProps, getInputProps} = useDropzone({
-    accept: {
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
-    },
-    maxFiles: 3,
-    onDrop
-  });
 
   return (
     <>
@@ -49,7 +85,7 @@ export default function Home() {
             files.map((file, index) => (
               <FileListItem key={index} name={file.name} selected={file === previewFile}
                             onClick={() => onPreviewFile(file)}
-                            onDelete={() => setFiles(files.filter(f => f !== file))}/>))
+                            onDelete={() => onDeleteFile(file)}/>))
             :
             <button
               {...getRootProps({className: 'dropzone'})}
@@ -77,27 +113,9 @@ export default function Home() {
       <div className='px-4 py-8 sm:px-6 lg:px-8'>
         <Text>{content.FilePreview.title}</Text>
         <div
-          className='overflow-x-auto whitespace-nowrap w-full flex justify-center items-center h-60 relative w-full rounded-lg border-2 border-solid border-gray-300 p-12 text-center hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden'>
+          className="overflow-auto whitespace-nowrap w-full h-60 relative rounded-lg border-2 border-solid border-gray-300 p-4 text-left hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden">
           {previewRows.length > 0 ?
-            <table>
-              <thead>
-              <tr>
-                {/* Optionally render headers if you have them */}
-                {previewRows[0]?.map((_, colIndex) => (
-                  <th key={colIndex}>{colIndex + 1}</th>
-                ))}
-              </tr>
-              </thead>
-              <tbody>
-              {previewRows.map((row, rowIndex) => (
-                <tr key={rowIndex}>
-                  {row.map((cell, cellIndex) => (
-                    <td key={cellIndex}>{String(cell)}</td>
-                  ))}
-                </tr>
-              ))}
-              </tbody>
-            </table>
+            <PreviewTable rows={previewRows}/>
             : <Text>{content.FilePreview.emptyMessage}</Text>}
         </div>
       </div>
