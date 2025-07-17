@@ -6,14 +6,13 @@ import {CloudArrowUpIcon} from "@heroicons/react/16/solid";
 import {Button} from "@components/button";
 import {Text} from "@components/text";
 import {useIntlayer} from "next-intlayer";
-import {DictionaryKeys} from "@intlayer/core";
 import {RowData} from "@tanstack/table-core";
 
 export default function Home() {
   const [files, setFiles] = useState<File[]>([]);
   const [previewFile, setPreviewFile] = useState<File | null>(null);
   const [previewRows, setPreviewRows] = useState<RowData[]>([]);
-  const content = useIntlayer("home" as DictionaryKeys)
+  const content = useIntlayer<'home'>("home")
 
   const onDrop = (acceptedFiles: File[]) => {
     //TODO: throw error when more than 3 files are selected
@@ -35,33 +34,6 @@ export default function Home() {
       setPreviewRows([])
     }
   }, [previewFile])
-
-  const headers = [
-    {
-      id: 'col1',
-      column: {
-        columnDef: {
-          header: 'Column 1 Header'
-        }
-      }
-    },
-    {
-      id: 'col2',
-      column: {
-        columnDef: {
-          header: 'Column 2 Header'
-        }
-      }
-    },
-    {
-      id: 'col3',
-      column: {
-        columnDef: {
-          header: 'Column 3 Header'
-        }
-      }
-    }
-  ]
 
   const onDeleteFile = (file: File) => {
     setFiles(files.filter(f => f !== file));
