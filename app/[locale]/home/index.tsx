@@ -3,8 +3,8 @@ import {useEffect, useState} from "react";
 import {FileListItem, PreviewTable, ProcessSpeedgoXlsx} from "@features/SpeedgoOptimizer";
 import {useDropzone} from "react-dropzone";
 import {CloudArrowUpIcon} from "@heroicons/react/16/solid";
-import {Button} from "@components/button";
-import {Text} from "@components/text";
+import {Button} from "@components/ui/button";
+import {Text} from "@components/ui/text";
 import {useIntlayer} from "next-intlayer";
 import {RowData} from "@tanstack/table-core";
 

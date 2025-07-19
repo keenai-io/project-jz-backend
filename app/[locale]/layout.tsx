@@ -2,9 +2,9 @@ export {generateStaticParams} from "next-intlayer"; // Line to insert
 import type {NextLayoutIntlayer} from "next-intlayer";
 import {Inter} from "next/font/google";
 import {getHTMLTextDir} from "intlayer";
-import {StackedLayout} from "@components/stacked-layout";
-import {Navbar, NavbarDivider, NavbarItem, NavbarSection, NavbarSpacer} from "@components/navbar";
-import {Avatar} from '@components/avatar'
+import {StackedLayout} from "@components/ui/stacked-layout";
+import {Navbar, NavbarDivider, NavbarItem, NavbarSection, NavbarSpacer} from "@components/ui/navbar";
+import {Avatar} from '@components/ui/avatar'
 import {
   Dropdown,
   DropdownButton,
@@ -12,8 +12,8 @@ import {
   DropdownItem,
   DropdownLabel,
   DropdownMenu,
-} from '@components/dropdown'
-import {Sidebar, SidebarBody, SidebarHeader, SidebarItem, SidebarSection} from '@components/sidebar'
+} from '@components/ui/dropdown'
+import {Sidebar, SidebarBody, SidebarHeader, SidebarItem, SidebarSection} from '@components/ui/sidebar'
 import {
   ArrowRightStartOnRectangleIcon,
   ChevronDownIcon,
@@ -24,7 +24,7 @@ import {
   UserIcon,
 } from '@heroicons/react/16/solid'
 import Image from 'next/image'
-import {Text} from "@components/text";
+import {Text} from "@components/ui/text";
 
 const inter = Inter({subsets: ["latin"]});
 
