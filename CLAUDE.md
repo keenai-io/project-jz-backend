@@ -132,7 +132,7 @@ function MyComponent(): JSX.Element {  // Cannot find namespace 'JSX'
 ## 🏗️ Project Structure (Vertical Slice Architecture)
 
 ```
-src/
+project root
 ├── app/                   # Next.js App Router
 │   ├── components/            # Shared UI components
 │   │   ├── ui/                # Base components (tailwindcss/Catalyst)
@@ -574,6 +574,7 @@ export default function Home() {
 
 ### Example of a next-intlayer single file that will contain multiple translations
 
+co-locate all content files with the component that is using it
 reference:
 
 - https://intlayer.org/doc/concept/content
