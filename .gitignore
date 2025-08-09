@@ -45,3 +45,4 @@ next-env.d.ts
 .idea/libraries/
 .idea/modules.xml
 /.intlayer/
+/.claude/settings.local.json

@@ -260,7 +260,7 @@ project root
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.8",
-    "read-excel-file": "^5.8.8",
+    "xlsx": "^0.18.5",
     "zod": "^4.0.5"
   },
   "devDependencies": {
