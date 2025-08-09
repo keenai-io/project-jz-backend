@@ -214,6 +214,9 @@ project root
       ],
       "@features/*": [
         "./features/*"
+      ],
+      "@lib/*": [
+        "./lib/*"
       ]
     }
   },
@@ -903,6 +906,7 @@ export default eslintConfig;
 9. **MUST write complete JSDoc** - ALL exports must be documented
 10. **NEVER use `any` type** - Use proper typing or `unknown`
 11. **MUST pass ALL automated checks** - Before ANY merge
+12. **MUST update all error messages to reflect current location**
 
 ## 📋 Pre-commit Checklist (MUST COMPLETE ALL)
 

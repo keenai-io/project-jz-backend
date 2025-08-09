@@ -1,4 +1,5 @@
 import readXlsxFile from "read-excel-file";
+// Note: This file is imported by client components, so we can't use server logger here
 
 type RowData = Record<string, string>;
 
@@ -14,19 +15,24 @@ function getColumnLetter(index: number): string {
   return letter;
 }
 
-export default async function ProcessSpeedgoXlsx(file: File) {
-  const rows = await readXlsxFile(file)
-  const headers = Array.from({length: rows[0].length}, (_, i) => getColumnLetter(i));
+export default async function ProcessSpeedgoXlsx(file: File): Promise<RowData[]> {
+  try {
+    const rows = await readXlsxFile(file);
+    const headers = Array.from({length: rows[0]?.length || 0}, (_, i) => getColumnLetter(i));
 
-  // Map rows to objects with keys as letters
-  const data: RowData[] = rows.map(row => {
-    const rowObj: RowData = {};
-    headers.forEach((header, index) => {
-      rowObj[header] = <string>row[index];
+    // Map rows to objects with keys as letters
+    const data: RowData[] = rows.map(row => {
+      const rowObj: RowData = {};
+      headers.forEach((header, index) => {
+        rowObj[header] = String(row[index] || '');
+      });
+      return rowObj;
     });
-    return rowObj;
-  });
 
-
-  return data
+    return data;
+    
+  } catch (error) {
+    const errorObj = error instanceof Error ? error : new Error('Unknown file processing error');
+    throw errorObj;
+  }
 }
