@@ -1,12 +1,13 @@
 'use client'
 import {useEffect, useState, useTransition} from "react";
-import {FileListItem, PreviewTable, ProcessSpeedgoXlsx, submitProductCategorization, transformExcelDataToCategorizationRequest} from "@features/SpeedgoOptimizer";
+import {FileListItem, PreviewTable, CategoryResultsTable, ProcessSpeedgoXlsx, submitProductCategorization, transformExcelDataToCategorizationRequest} from "@features/SpeedgoOptimizer";
 import {useDropzone} from "react-dropzone";
 import {CloudArrowUpIcon} from "@heroicons/react/16/solid";
 import {Button} from "@components/ui/button";
 import {Text} from "@components/ui/text";
 import {useIntlayer} from "next-intlayer";
 import {RowData} from "@tanstack/table-core";
+import {CategoryResponseItem} from "@features/SpeedgoOptimizer/domain/schemas/CategoryResponse";
 import clientLogger from "@/lib/logger.client";
 
 export default function Home() {
@@ -14,6 +15,7 @@ export default function Home() {
   const [previewFile, setPreviewFile] = useState<File | null>(null);
   const [previewRows, setPreviewRows] = useState<RowData[]>([]);
   const [processingResult, setProcessingResult] = useState<string | null>(null);
+  const [categorizationResults, setCategorizationResults] = useState<CategoryResponseItem[] | null>(null);
   const [isPending, startTransition] = useTransition();
   const content = useIntlayer<'home'>("home")
 
@@ -80,11 +82,13 @@ export default function Home() {
         
         if (result.success) {
           setProcessingResult(`Successfully processed ${result.data.length} products. Categories received!`);
+          setCategorizationResults(result.data);
           clientLogger.info('Categorization completed successfully', 'ui', {
             processedProducts: result.data.length
           });
         } else {
           setProcessingResult(`Processing failed: ${result.error}`);
+          setCategorizationResults(null);
           clientLogger.warn('Categorization processing failed', 'ui', {
             error: result.error
           });
@@ -94,6 +98,7 @@ export default function Home() {
         const errorObj = error instanceof Error ? error : new Error('Unknown error processing files');
         clientLogger.error('Error processing files in UI', errorObj, 'ui');
         setProcessingResult(`Error processing files: ${errorObj.message}`);
+        setCategorizationResults(null);
       }
     });
   }
@@ -138,8 +143,20 @@ export default function Home() {
             </Button>
           </div>
           {processingResult && (
-            <div className="mt-4 p-3 rounded-lg bg-blue-50 border border-blue-200">
-              <Text className={processingResult.includes('failed') || processingResult.includes('Error') ? 'text-red-600' : 'text-blue-800'}>
+            <div className={`mt-4 p-3 rounded-lg border ${
+              processingResult.includes('failed') || processingResult.includes('Error')
+                ? 'bg-red-50 border-red-200'
+                : processingResult.includes('Processing')
+                ? 'bg-yellow-50 border-yellow-200'
+                : 'bg-green-50 border-green-200'
+            }`}>
+              <Text className={
+                processingResult.includes('failed') || processingResult.includes('Error')
+                  ? 'text-red-600'
+                  : processingResult.includes('Processing')
+                  ? 'text-yellow-800'
+                  : 'text-green-800'
+              }>
                 {processingResult}
               </Text>
             </div>
@@ -155,6 +172,22 @@ export default function Home() {
             : <Text>{content.FilePreview.emptyMessage}</Text>}
         </div>
       </div>
+
+      {/* Display categorization results when available */}
+      {categorizationResults && categorizationResults.length > 0 && (
+        <div className='px-4 py-8 sm:px-6 lg:px-8'>
+          <CategoryResultsTable 
+            results={categorizationResults}
+            onProductSelect={(product) => {
+              clientLogger.info('Product selected for details', 'ui', {
+                productNumber: product.product_number,
+                productName: product.product_name
+              });
+              // Future: Could open a modal or navigate to product details
+            }}
+          />
+        </div>
+      )}
 
     </>
   )

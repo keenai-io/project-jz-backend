@@ -1,6 +1,7 @@
 /**
- * Client-safe logger for browser environments
- * Provides console-based logging with the same interface as the server logger
+ * Client-safe logger for browser environments with winston-dev-console inspired formatting
+ * Provides enhanced console-based logging with source location and improved readability
+ * Mimics winston-dev-console pattern but optimized for browser environments
  */
 
 import {z} from 'zod';
@@ -21,16 +22,103 @@ const clientLogEnv = clientLogEnvSchema.parse({
  */
 export type LogContext = 'api' | 'auth' | 'db' | 'file' | 'categorization' | 'ui' | 'system';
 
-// Note: LoggerMeta interface removed as it's not used - client logger uses inline types
+/**
+ * Enhanced client logger formatting inspired by winston-dev-console
+ * Provides source location tracking and improved console output formatting
+ */
+interface ClientLoggerOptions {
+  showTimestamps?: boolean;
+  addLineSeparation?: boolean;
+  maxObjectDepth?: number;
+  includeSourceLocation?: boolean;
+}
+
+const defaultOptions: Required<ClientLoggerOptions> = {
+  showTimestamps: false, // Usually noise in browser dev tools
+  addLineSeparation: true,
+  maxObjectDepth: 3,
+  includeSourceLocation: true
+};
 
 /**
- * Client-side console logger that provides structured logging
+ * Gets the caller information for source location tracking
+ */
+function getCallerInfo(): { fileName: string; lineNumber: string; functionName: string } | null {
+  try {
+    throw new Error();
+  } catch (e) {
+    const error = e as Error;
+    const stack = error.stack?.split('\n')[3] || '';
+    
+    // Parse stack trace for file location
+    const match = stack.match(/\/([^/]+):([0-9]+):[0-9]+/);
+    const functionMatch = stack.match(/at\s+([^\s]+)/);
+    
+    return {
+      fileName: match?.[1] || 'unknown',
+      lineNumber: match?.[2] || '0',
+      functionName: functionMatch?.[1]?.replace(/^Object\./, '') || 'anonymous'
+    };
+  }
+}
+
+/**
+ * Formats console output with winston-dev-console inspired styling
+ */
+function formatLogMessage(
+  level: string,
+  message: string,
+  _meta?: Record<string, unknown>,
+  options: Required<ClientLoggerOptions> = defaultOptions
+): { message: string; args: unknown[] } {
+  const timestamp = new Date().toISOString();
+  const caller = options.includeSourceLocation ? getCallerInfo() : null;
+  
+  // Level styling for browser console
+  const levelStyles: Record<string, string> = {
+    error: 'color: #dc2626; font-weight: bold',
+    warn: 'color: #d97706; font-weight: bold', 
+    info: 'color: #2563eb; font-weight: bold',
+    debug: 'color: #059669; font-weight: bold'
+  };
+  
+  let formattedMessage = `%c[${level.toUpperCase()}]%c ${message}`;
+  const args: unknown[] = [
+    levelStyles[level] || 'font-weight: bold',
+    'font-weight: normal'
+  ];
+  
+  // Add timestamp if enabled
+  if (options.showTimestamps) {
+    const timeOnly = timestamp.split('T')[1]?.split('.')[0] || '';
+    formattedMessage += ` %c${timeOnly}%c`;
+    args.push('color: #6b7280; font-size: 0.85em', 'color: inherit');
+  }
+  
+  // Add source location if available
+  if (caller && options.includeSourceLocation) {
+    const location = `at ${caller.fileName}:${caller.lineNumber}`;
+    const funcName = caller.functionName !== 'anonymous' ? ` [${caller.functionName}]` : '';
+    formattedMessage += `\n%c   ${location}${funcName}%c`;
+    args.push('color: #6b7280; font-style: italic; font-size: 0.9em', 'color: inherit');
+  }
+  
+  // Add line separation if enabled
+  if (options.addLineSeparation) {
+    formattedMessage += '\n';
+  }
+  
+  return { message: formattedMessage, args };
+}
+
+/**
+ * Client-side console logger that provides structured logging with enhanced formatting
  * Safe for use in React components and browser environments
  */
 export const clientLogger = {
   /**
    * Error level logging with optional error object
-   * Message should include file location reference for debugging
+   * Enhanced with source location tracking and improved formatting
    */
   error: (message: string, error?: Error, context?: LogContext, meta?: Record<string, unknown>): void => {
     const logMeta = {
@@ -44,63 +132,76 @@ export const clientLogger = {
       ...meta
     };
     
-    console.error(`[ERROR] ${message}`, logMeta);
+    const formatted = formatLogMessage('error', message, logMeta);
+    console.error(formatted.message, ...formatted.args, logMeta);
   },
 
   /**
-   * Warning level logging
+   * Warning level logging with enhanced formatting
    */
   warn: (message: string, context?: LogContext, meta?: Record<string, unknown>): void => {
-    console.warn(`[WARN] ${message}`, { 
+    const logMeta = { 
       context, 
       clientSide: true,
       ...meta 
-    });
+    };
+    
+    const formatted = formatLogMessage('warn', message, logMeta);
+    console.warn(formatted.message, ...formatted.args, logMeta);
   },
 
   /**
-   * Info level logging
+   * Info level logging with enhanced formatting
    */
   info: (message: string, context?: LogContext, meta?: Record<string, unknown>): void => {
-    console.info(`[INFO] ${message}`, { 
+    const logMeta = { 
       context, 
       clientSide: true,
       ...meta 
-    });
+    };
+    
+    const formatted = formatLogMessage('info', message, logMeta);
+    console.info(formatted.message, ...formatted.args, logMeta);
   },
 
   /**
-   * Debug level logging (only in development)
+   * Debug level logging with enhanced formatting (only in development)
    */
   debug: (message: string, context?: LogContext, meta?: Record<string, unknown>): void => {
     if (clientLogEnv.NODE_ENV === 'development') {
-      console.debug(`[DEBUG] ${message}`, { 
+      const logMeta = { 
         context, 
         clientSide: true,
         ...meta 
-      });
+      };
+      
+      const formatted = formatLogMessage('debug', message, logMeta);
+      console.debug(formatted.message, ...formatted.args, logMeta);
     }
   },
 
   /**
-   * API request/response logging
+   * API request/response logging with enhanced formatting
    */
   apiRequest: (method: string, url: string, duration?: number, statusCode?: number): void => {
-    console.info(`[API] ${method} ${url}`, {
+    const logMeta = {
       context: 'api' as LogContext,
       clientSide: true,
       method,
       url,
       duration,
       statusCode
-    });
+    };
+    
+    const formatted = formatLogMessage('info', `${method} ${url}`, logMeta);
+    console.info(formatted.message, ...formatted.args, logMeta);
   },
 
   /**
-   * API error logging with request details
+   * API error logging with request details and enhanced formatting
    */
   apiError: (method: string, url: string, error: Error, statusCode?: number): void => {
-    console.error(`[API ERROR] ${method} ${url}`, {
+    const logMeta = {
       context: 'api' as LogContext,
       clientSide: true,
       method,
@@ -111,7 +212,10 @@ export const clientLogger = {
         message: error.message,
         stack: error.stack
       }
-    });
+    };
+    
+    const formatted = formatLogMessage('error', `API ERROR ${method} ${url}`, logMeta);
+    console.error(formatted.message, ...formatted.args, logMeta);
   },
 
   /**

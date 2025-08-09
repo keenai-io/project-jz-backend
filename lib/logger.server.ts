@@ -1,11 +1,14 @@
 /**
- * Server-only Winston logger for Node.js environments
+ * Server-only Winston logger for Node.js environments with winston-dev-console enhancement
  * Contains Winston imports that are safe to use in server actions and API routes
+ * Enhanced with source file location and improved development UX
  */
 
 import winston from 'winston';
+import winstonDevConsole from '@epegzz/winston-dev-console';
 import {z, ZodError} from 'zod';
 import { formatZodError } from './zod-error-formatter';
+import path from 'path';
 
 // Environment validation for server logging
 const serverLogEnvSchema = z.object({
@@ -54,48 +57,71 @@ const productionFormat = winston.format.combine(
 );
 
 /**
- * Winston logger configuration for server-side use only
+ * Winston logger configuration for server-side use only with winston-dev-console enhancement
  * 
- * Development: Console output with colors and pretty formatting
+ * Development: Enhanced console output with source file location, colors and pretty formatting
  * Production: JSON structured logs with file output
  * Test: Minimal logging to avoid noise
  */
-const winstonLogger = winston.createLogger({
+let winstonLogger = winston.createLogger({
   level: serverLogEnv.LOG_LEVEL,
-  format: serverLogEnv.NODE_ENV === 'production' ? productionFormat : developmentFormat,
   defaultMeta: {
     service: 'marketplace-ai',
     environment: serverLogEnv.NODE_ENV,
     serverSide: true
-  },
-  transports: [
-    // Console transport for all environments
+  }
+});
+
+// Apply winston-dev-console enhancement in development
+if (serverLogEnv.NODE_ENV === 'development') {
+  winstonLogger = winstonDevConsole.init(winstonLogger);
+  
+  // Add enhanced dev console transport
+  winstonLogger.add(
+    winstonDevConsole.transport({
+      basePath: path.resolve(process.cwd()),
+      showTimestamps: false, // Usually more noise than helpful in development
+      addLineSeparation: true, // Better readability between log statements
+      inspectOptions: {
+        depth: 3, // Reasonable depth for objects
+        colors: true,
+        maxArrayLength: 5, // Prevent overwhelming output
+        breakLength: 80,
+        compact: false
+      }
+    })
+  );
+} else {
+  // Production/Test: Use original transports
+  winstonLogger.add(
     new winston.transports.Console({
       silent: serverLogEnv.NODE_ENV === 'test',
-      format: serverLogEnv.NODE_ENV === 'development' ? developmentFormat : productionFormat
-    }),
-    
-    // File transport for production or when LOG_FILE is specified
-    ...(serverLogEnv.NODE_ENV === 'production' || serverLogEnv.LOG_FILE
-      ? [
-          new winston.transports.File({
-            filename: serverLogEnv.LOG_FILE || 'logs/app.log',
-            maxsize: 10 * 1024 * 1024, // 10MB
-            maxFiles: 5,
-            format: productionFormat
-          }),
-          new winston.transports.File({
-            filename: serverLogEnv.LOG_FILE?.replace('.log', '.error.log') || 'logs/error.log',
-            level: 'error',
-            maxsize: 10 * 1024 * 1024, // 10MB
-            maxFiles: 5,
-            format: productionFormat
-          })
-        ]
-      : []
-    )
-  ]
-});
+      format: serverLogEnv.NODE_ENV === 'production' ? productionFormat : developmentFormat
+    })
+  );
+}
+
+// Add file transports for production or when LOG_FILE is specified
+if (serverLogEnv.NODE_ENV === 'production' || serverLogEnv.LOG_FILE) {
+  winstonLogger.add(
+    new winston.transports.File({
+      filename: serverLogEnv.LOG_FILE || 'logs/app.log',
+      maxsize: 10 * 1024 * 1024, // 10MB
+      maxFiles: 5,
+      format: productionFormat
+    })
+  );
+  
+  winstonLogger.add(
+    new winston.transports.File({
+      filename: serverLogEnv.LOG_FILE?.replace('.log', '.error.log') || 'logs/error.log',
+      level: 'error',
+      maxsize: 10 * 1024 * 1024, // 10MB
+      maxFiles: 5,
+      format: productionFormat
+    })
+  );
+}
 
 /**
  * Enhanced server logger with context-aware logging methods

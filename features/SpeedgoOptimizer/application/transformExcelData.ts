@@ -11,7 +11,7 @@ import { createValidationErrorMessage } from "@/lib/zod-error-formatter";
  * @throws Error with human-readable message if validation fails
  */
 export function transformExcelDataToCategorizationRequest(excelData: RowData[]): CategoryRequestItem[] {
-  const transformedData = excelData.slice(4).map((row, index) => {
+  const transformedData = excelData.slice(2).map((row, index) => {
     // Extract data from Excel columns (assuming standard column layout)
     // Skip the header row (index 0) with slice(1)
     const rowData = row as Record<string, unknown>;
