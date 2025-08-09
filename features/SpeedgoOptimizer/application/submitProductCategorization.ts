@@ -31,16 +31,30 @@ export async function submitProductCategorization(
       products
     });
 
+    // Check record limit
+    if (products.length > 3000) {
+      const error = `Too many records: ${products.length}. Maximum allowed is 3000 records per submission.`;
+      serverLogger.error('Record limit exceeded [submitProductCategorization.ts:34]', new Error(error), 'categorization', {
+        productCount: products.length,
+        limit: 3000
+      });
+      
+      return {
+        success: false,
+        error
+      };
+    }
+
     // Validate input data
     const validationResult = CategoryRequestSchema.safeParse(products);
     if (!validationResult.success) {
       const validationError = createValidationErrorMessage(
-        'Product data [submitProductCategorization.ts:35]', 
+        'Product data [submitProductCategorization.ts:49]', 
         validationResult.error,
         { maxErrors: 5, includePath: true }
       );
       
-      serverLogger.error('Input validation failed [submitProductCategorization.ts:35]', validationResult.error, 'categorization', {
+      serverLogger.error('Input validation failed [submitProductCategorization.ts:49]', validationResult.error, 'categorization', {
         productCount: products.length,
         validationError
       });
@@ -105,7 +119,7 @@ export async function submitProductCategorization(
           }
         }
       } catch (parseError) {
-        serverLogger.error('Failed to parse error response [submitProductCategorization.ts:108]', parseError as Error, 'api');
+        serverLogger.error('Failed to parse error response [submitProductCategorization.ts:122]', parseError as Error, 'api');
       }
 
       serverLogger.apiError('POST', apiUrl, new Error(errorMessage), response.status);
@@ -136,12 +150,12 @@ export async function submitProductCategorization(
     const responseValidation = CategoryResponseSchema.safeParse(responseData);
     if (!responseValidation.success) {
       const responseError = createValidationErrorMessage(
-        'API response [submitProductCategorization.ts:136]',
+        'API response [submitProductCategorization.ts:150]',
         responseValidation.error,
         { maxErrors: 3, includePath: true }
       );
       
-      serverLogger.error('API response validation failed [submitProductCategorization.ts:136]', responseValidation.error, 'api', {
+      serverLogger.error('API response validation failed [submitProductCategorization.ts:150]', responseValidation.error, 'api', {
         duration,
         statusCode: response.status,
         responseData: Array.isArray(responseData) ? responseData.slice(0, 2) : responseData
@@ -166,7 +180,7 @@ export async function submitProductCategorization(
     const duration = Date.now() - startTime;
     const errorObj = error instanceof Error ? error : new Error('Unknown error');
     
-    serverLogger.error('Error in submitProductCategorization [submitProductCategorization.ts:169]', errorObj, 'categorization', {
+    serverLogger.error('Error in submitProductCategorization [submitProductCategorization.ts:183]', errorObj, 'categorization', {
       productCount: products.length,
       duration
     });
@@ -174,7 +188,7 @@ export async function submitProductCategorization(
     
     // Format errors based on their type for better user experience
     if (error instanceof ZodError) {
-      const userFriendlyError = createValidationErrorMessage('Product data [submitProductCategorization.ts:177]', error, {
+      const userFriendlyError = createValidationErrorMessage('Product data [submitProductCategorization.ts:191]', error, {
         maxErrors: 3,
         includePath: true
       });
@@ -184,7 +198,7 @@ export async function submitProductCategorization(
       };
     }
     
-    const userFriendlyError = formatError(error, 'Failed to submit products for categorization [submitProductCategorization.ts:187]');
+    const userFriendlyError = formatError(error, 'Failed to submit products for categorization [submitProductCategorization.ts:201]');
     return {
       success: false,
       error: userFriendlyError
