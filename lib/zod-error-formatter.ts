@@ -1,8 +1,8 @@
-import { ZodError } from 'zod';
+import {ZodError} from 'zod';
 
 /**
  * Formats a Zod error into a human-readable message with improved stack trace readability
- * 
+ *
  * @param error - The ZodError to format
  * @param options - Formatting options
  * @returns A human-readable error message with enhanced formatting
@@ -22,31 +22,31 @@ export function formatZodError(
     groupByPath?: boolean;
   } = {}
 ): string {
-  const { 
-    includePath = true, 
-    maxErrors = 5, 
-    bulletPoint = '• ', 
+  const {
+    includePath = true,
+    maxErrors = 5,
+    bulletPoint = '• ',
     includeErrorCode = false,
-    groupByPath = true 
+    groupByPath = true
   } = options;
-  
+
   const issues = error.issues.slice(0, maxErrors);
   const hasMore = error.issues.length > maxErrors;
-  
+
   // Group errors by path for better organization
   const groupedIssues = groupByPath ? groupIssuesByPath(issues) : null;
-  
-  const messages = groupedIssues 
+
+  const messages = groupedIssues
     ? formatGroupedIssues(groupedIssues, includePath, includeErrorCode, bulletPoint)
     : formatIndividualIssues(issues, includePath, includeErrorCode, bulletPoint);
-  
+
   let result = messages.join('\n');
-  
+
   if (hasMore) {
     const remainingCount = error.issues.length - maxErrors;
     result += `\n${bulletPoint}... and ${remainingCount} more validation error${remainingCount === 1 ? '' : 's'}`;
   }
-  
+
   return result;
 }
 
@@ -57,13 +57,13 @@ export function formatZodError(
  */
 function groupIssuesByPath(issues: ZodError['issues']): Map<string, ZodError['issues']> {
   const grouped = new Map<string, ZodError['issues']>();
-  
+
   for (const issue of issues) {
     const pathKey = issue.path.length > 0 ? issue.path.join('.') : '_root';
     const existingIssues = grouped.get(pathKey) || [];
     grouped.set(pathKey, [...existingIssues, issue]);
   }
-  
+
   return grouped;
 }
 
@@ -82,13 +82,13 @@ function formatGroupedIssues(
   bulletPoint: string
 ): string[] {
   const messages: string[] = [];
-  
+
   for (const [pathKey, issues] of groupedIssues) {
     const pathDisplay = pathKey === '_root' ? 'Root level' : pathKey;
-    
+
     if (includePath && issues.length > 1) {
       messages.push(`\n📍 Issues at ${pathDisplay}:`);
-      
+
       for (const issue of issues) {
         const formatted = formatSingleIssue(issue, false, includeErrorCode);
         messages.push(`  ${bulletPoint}${formatted}`);
@@ -100,7 +100,7 @@ function formatGroupedIssues(
       }
     }
   }
-  
+
   return messages;
 }
 
@@ -139,10 +139,10 @@ function formatSingleIssue(
   const path = issue.path.length > 0 ? issue.path.join('.') : '';
   const pathPrefix = includePath && path ? `🔗 ${path}: ` : '';
   const errorCode = includeErrorCode ? ` [${issue.code}]` : '';
-  
+
   // Enhanced message formatting with emojis and better descriptions
-  let message = enhanceErrorMessage(issue);
-  
+  const message = enhanceErrorMessage(issue);
+
   // Add received value context for better debugging
   let valueContext = '';
   if ('received' in issue && issue.received !== undefined) {
@@ -151,7 +151,7 @@ function formatSingleIssue(
       : String(issue.received);
     valueContext = ` (received: ${receivedValue})`;
   }
-  
+
   return `${pathPrefix}${message}${valueContext}${errorCode}`;
 }
 
@@ -162,7 +162,7 @@ function formatSingleIssue(
  */
 function enhanceErrorMessage(issue: ZodError['issues'][0]): string {
   let message = issue.message;
-  
+
   // Handle specific error codes with enhanced messages and emojis
   switch (issue.code) {
     case 'invalid_type':
@@ -207,13 +207,13 @@ function enhanceErrorMessage(issue: ZodError['issues'][0]): string {
         message = `❌ ${message}`;
       }
   }
-  
+
   return message;
 }
 
 /**
  * Creates a formatted error message for validation failures
- * 
+ *
  * @param context - Context where the validation failed (e.g., 'Product data', 'API request')
  * @param error - The ZodError that occurred
  * @param options - Formatting options
@@ -234,7 +234,7 @@ export function createValidationErrorMessage(
 
 /**
  * Formats FastAPI-style validation errors into human-readable messages
- * 
+ *
  * @param errorDetails - Array of FastAPI error detail objects
  * @param options - Formatting options
  * @returns A formatted error message
@@ -252,16 +252,16 @@ export function formatFastApiError(
     maxErrors?: number;
   } = {}
 ): string {
-  const { bulletPoint = '• ', includePath = true, maxErrors = 5 } = options;
-  
+  const {bulletPoint = '• ', includePath = true, maxErrors = 5} = options;
+
   const details = errorDetails.slice(0, maxErrors);
   const hasMore = errorDetails.length > maxErrors;
-  
+
   const messages = details.map(detail => {
-    const location = includePath && detail.loc.length > 0 
-      ? `${detail.loc.join('.')}: ` 
+    const location = includePath && detail.loc.length > 0
+      ? `${detail.loc.join('.')}: `
       : '';
-    
+
     // Make common FastAPI messages more user-friendly
     let message = detail.msg;
     if (message === 'Input should be a valid list') {
@@ -269,50 +269,50 @@ export function formatFastApiError(
     } else if (message.includes('field required')) {
       message = 'This field is required';
     }
-    
+
     return `${location}${message}`;
   });
-  
+
   let result = messages.map(msg => `${bulletPoint}${msg}`).join('\n');
-  
+
   if (hasMore) {
     const remainingCount = errorDetails.length - maxErrors;
     result += `\n${bulletPoint}... and ${remainingCount} more validation error${remainingCount === 1 ? '' : 's'}`;
   }
-  
+
   return result;
 }
 
 /**
  * Safely formats any error into a human-readable message
  * Handles ZodError, FastAPI errors, regular Error, and unknown error types
- * 
+ *
  * @param error - The error to format
  * @param context - Optional context for the error
  * @returns A human-readable error message
  */
 export function formatError(error: unknown, context?: string): string {
   const prefix = context ? `${context}: ` : '';
-  
+
   if (error instanceof ZodError) {
     return `${prefix}Validation failed:\n${formatZodError(error)}`;
   }
-  
+
   // Handle FastAPI error format
   if (typeof error === 'object' && error !== null && 'detail' in error) {
-    const errorObj = error as { detail: any };
+    const errorObj = error as { detail: never };
     if (Array.isArray(errorObj.detail)) {
       return `${prefix}API validation failed:\n${formatFastApiError(errorObj.detail)}`;
     }
   }
-  
+
   if (error instanceof Error) {
     return `${prefix}${error.message}`;
   }
-  
+
   if (typeof error === 'string') {
     return `${prefix}${error}`;
   }
-  
+
   return `${prefix}An unknown error occurred`;
 }

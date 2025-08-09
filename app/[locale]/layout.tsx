@@ -28,40 +28,40 @@ import {Text} from "@components/ui/text";
 
 const inter = Inter({subsets: ["latin"]});
 
-const getNavItems = (content: ReturnType<typeof getIntlayer<'layout'>>) => [
-  {label: content.navigation.configurations, url: '/'},
-  {label: content.navigation.dashboard, url: '/events'}
-]
-
-function TeamDropdownMenu({content}: {content: ReturnType<typeof getIntlayer<'layout'>>}) {
-  return (
-    <DropdownMenu className="min-w-80 lg:min-w-64" anchor="bottom start">
-      <DropdownItem href="/teams/1/settings">
-        <Cog8ToothIcon/>
-        <DropdownLabel>{content.teamDropdown.settings}</DropdownLabel>
-      </DropdownItem>
-      <DropdownDivider/>
-      <DropdownItem href="/teams/1">
-        <Avatar slot="icon" src="/tailwind-logo.svg"/>
-        <DropdownLabel>{content.teamDropdown.tailwindLabs}</DropdownLabel>
-      </DropdownItem>
-      <DropdownItem href="/teams/2">
-        <Avatar slot="icon" initials="WC" className="bg-purple-500 text-white"/>
-        <DropdownLabel>{content.teamDropdown.workcation}</DropdownLabel>
-      </DropdownItem>
-      <DropdownDivider/>
-      <DropdownItem href="/teams/create">
-        <PlusIcon/>
-        <DropdownLabel>{content.teamDropdown.newTeam}</DropdownLabel>
-      </DropdownItem>
-    </DropdownMenu>
-  )
-}
-
 const LocaleLayout: NextLayoutIntlayer = async ({children, params}) => {
   const {locale} = await params;
   const content = getIntlayer("layout", locale);
-  const navItems = getNavItems(content);
+
+  const getNavItems = () => [
+    {label: content.navigation.configurations, url: '/'},
+    {label: content.navigation.dashboard, url: '/events'}
+  ]
+
+  function TeamDropdownMenu() {
+    return (
+        <DropdownMenu className="min-w-80 lg:min-w-64" anchor="bottom start">
+          <DropdownItem href="/teams/1/settings">
+            <Cog8ToothIcon/>
+            <DropdownLabel>{content.teamDropdown.settings}</DropdownLabel>
+          </DropdownItem>
+          <DropdownDivider/>
+          <DropdownItem href="/teams/1">
+            <Avatar slot="icon" src="/tailwind-logo.svg"/>
+            <DropdownLabel>{content.teamDropdown.tailwindLabs}</DropdownLabel>
+          </DropdownItem>
+          <DropdownItem href="/teams/2">
+            <Avatar slot="icon" initials="WC" className="bg-purple-500 text-white"/>
+            <DropdownLabel>{content.teamDropdown.workcation}</DropdownLabel>
+          </DropdownItem>
+          <DropdownDivider/>
+          <DropdownItem href="/teams/create">
+            <PlusIcon/>
+            <DropdownLabel>{content.teamDropdown.newTeam}</DropdownLabel>
+          </DropdownItem>
+        </DropdownMenu>
+    )
+  }
+
   return (
     <html lang={locale} dir={getHTMLTextDir(locale)}>
     <body className={inter.className}>
@@ -73,11 +73,11 @@ const LocaleLayout: NextLayoutIntlayer = async ({children, params}) => {
               <Image priority={true} width={200} height={200} src="/logo.png" alt={""}/>
               <ChevronDownIcon/>
             </DropdownButton>
-            <TeamDropdownMenu content={content}/>
+            <TeamDropdownMenu />
           </Dropdown>
           <NavbarDivider className="max-lg:hidden"/>
           <NavbarSection className="max-lg:hidden">
-            {navItems.map(({label, url}) => (
+            {getNavItems().map(({label, url}) => (
               <NavbarItem key={label} href={url}>
                 {label}
               </NavbarItem>
@@ -128,12 +128,12 @@ const LocaleLayout: NextLayoutIntlayer = async ({children, params}) => {
                 <Avatar src="/icon.png"/>
                 <ChevronDownIcon/>
               </DropdownButton>
-              <TeamDropdownMenu content={content}/>
+              <TeamDropdownMenu />
             </Dropdown>
           </SidebarHeader>
           <SidebarBody>
             <SidebarSection>
-              {navItems.map(({label, url}) => (
+              {getNavItems().map(({label, url}) => (
                 <SidebarItem key={label} href={url}>
                   {label}
                 </SidebarItem>

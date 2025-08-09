@@ -1,8 +1,7 @@
 "use client";
 
 import * as Headless from '@headlessui/react'
-import NextLink, {type LinkProps as NextLinkProps} from 'next/link'
-import type {FC, PropsWithChildren} from "react";
+import NextLink, {LinkProps, type LinkProps as NextLinkProps} from 'next/link'
 import React, {forwardRef} from 'react'
 import {getLocalizedUrl} from "intlayer";
 import {useLocale} from "next-intlayer";
@@ -20,11 +19,11 @@ export const checkIsExternalLink = (href?: string): boolean =>
  * For internal links, it uses `getLocalizedUrl` to prefix the URL with the locale (e.g., /fr/about).
  * This ensures that navigation stays within the same locale context.
  */
-export const Link: FC<PropsWithChildren<NextLinkProps>> = forwardRef(function Link({
-                                                                                     href,
-                                                                                     children,
-                                                                                     ...props
-                                                                                   }, ref: React.ForwardedRef<HTMLAnchorElement>) {
+export const Link = forwardRef(function Link({
+                                               href,
+                                               children,
+                                               ...props
+                                             }: LinkProps & React.ComponentPropsWithoutRef<'a'>, ref: React.ForwardedRef<HTMLAnchorElement>) {
   const {locale} = useLocale();
   const isExternalLink = checkIsExternalLink(href.toString());
 

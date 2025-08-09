@@ -3,9 +3,9 @@
  * @module features/SpeedgoOptimizer/application/__tests__/exportCategorizationResults.test
  */
 
-import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest';
-import { CategoryResponseItem } from '@features/SpeedgoOptimizer/domain/schemas/CategoryResponse';
-import { 
+import {describe, it, expect, vi, beforeAll, afterAll} from 'vitest';
+import {CategoryResponseItem} from '@features/SpeedgoOptimizer/domain/schemas/CategoryResponse';
+import {
   exportCategorizationResultsToExcel,
   isExportSupported,
   getEstimatedExportSize,
@@ -63,12 +63,14 @@ describe('exportCategorizationResults', () => {
    */
   it('should detect export support correctly', () => {
     expect(isExportSupported()).toBe(true);
-    
+
     // Test when window is not available (server-side)
     const originalWindow = global.window;
-    delete (global as any).window;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    delete (global as never).window;
     expect(isExportSupported()).toBe(false);
-    
+
     // Restore window
     global.window = originalWindow;
   });
@@ -77,12 +79,14 @@ describe('exportCategorizationResults', () => {
    * Tests file size estimation calculation.
    */
   it('should estimate export file size correctly', () => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     const singleProductSize = getEstimatedExportSize([mockResults[0]]);
     expect(singleProductSize).toBeGreaterThan(0);
-    
+
     const multipleProductsSize = getEstimatedExportSize(mockResults.concat(mockResults));
     expect(multipleProductsSize).toBeGreaterThan(singleProductSize);
-    
+
     // Empty results should return 0
     expect(getEstimatedExportSize([])).toBe(0);
   });
@@ -108,8 +112,8 @@ describe('exportCategorizationResults', () => {
    * Tests error handling for invalid results.
    */
   it('should handle null/undefined results', async () => {
-    await expect(exportCategorizationResultsToExcel(null as any)).rejects.toThrow('No results to export');
-    await expect(exportCategorizationResultsToExcel(undefined as any)).rejects.toThrow('No results to export');
+    await expect(exportCategorizationResultsToExcel(null as never)).rejects.toThrow('No results to export');
+    await expect(exportCategorizationResultsToExcel(undefined as never)).rejects.toThrow('No results to export');
   });
 
   /**

@@ -1,25 +1,26 @@
 import * as Headless from '@headlessui/react'
 import clsx from 'clsx'
-import React, { forwardRef } from 'react'
-import { TouchTarget } from './button'
-import { Link } from './link'
+import React, {forwardRef} from 'react'
+import {TouchTarget} from './button'
+import {Link} from './link'
+import Image from 'next/image'
 
 type AvatarProps = {
-  src?: string | null
+  src?: string | null | undefined
   square?: boolean
-  initials?: string
-  alt?: string
-  className?: string
+  initials?: string | undefined
+  alt?: string | undefined
+  className?: string | undefined
 }
 
 export function Avatar({
-  src = null,
-  square = false,
-  initials,
-  alt = '',
-  className,
-  ...props
-}: AvatarProps & React.ComponentPropsWithoutRef<'span'>) {
+                         src = null,
+                         square = false,
+                         initials,
+                         alt = '',
+                         className,
+                         ...props
+                       }: AvatarProps & React.ComponentPropsWithoutRef<'span'>) {
   return (
     <span
       data-slot="avatar"
@@ -45,7 +46,7 @@ export function Avatar({
           </text>
         </svg>
       )}
-      {src && <img className="size-full" src={src} alt={alt} />}
+      {src && <Image className="size-full" src={src} alt={alt}/>}
     </span>
   )
 }
@@ -62,7 +63,7 @@ export const AvatarButton = forwardRef(function AvatarButton(
     (Omit<Headless.ButtonProps, 'as' | 'className'> | Omit<React.ComponentPropsWithoutRef<typeof Link>, 'className'>),
   ref: React.ForwardedRef<HTMLElement>
 ) {
-  let classes = clsx(
+  const classes = clsx(
     className,
     square ? 'rounded-[20%]' : 'rounded-full',
     'relative inline-grid focus:not-data-focus:outline-hidden data-focus:outline-2 data-focus:outline-offset-2 data-focus:outline-blue-500'
@@ -71,13 +72,13 @@ export const AvatarButton = forwardRef(function AvatarButton(
   return 'href' in props ? (
     <Link {...props} className={classes} ref={ref as React.ForwardedRef<HTMLAnchorElement>}>
       <TouchTarget>
-        <Avatar src={src} square={square} initials={initials} alt={alt} />
+        <Avatar src={src} square={square} initials={initials} alt={alt}/>
       </TouchTarget>
     </Link>
   ) : (
     <Headless.Button {...props} className={classes} ref={ref}>
       <TouchTarget>
-        <Avatar src={src} square={square} initials={initials} alt={alt} />
+        <Avatar src={src} square={square} initials={initials} alt={alt}/>
       </TouchTarget>
     </Headless.Button>
   )
