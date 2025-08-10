@@ -17,6 +17,7 @@
     "@epegzz/winston-dev-console": "^1.3.4",
     "@headlessui/react": "^2.2.4",
     "@heroicons/react": "^2.2.0",
+    "@tanstack/react-form": "^1.19.0",
     "@tanstack/react-query": "^5.83.0",
     "@tanstack/react-table": "^8.21.3",
     "clsx": "^2.1.1",

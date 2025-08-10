@@ -1,0 +1,393 @@
+/**
+ * @fileoverview Tests for ConfigurationModal component
+ * @module features/Configuration/presentation/__tests__/ConfigurationModal.test
+ */
+
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { IntlayerClientProvider } from 'next-intlayer';
+import { ConfigurationModal } from '../ConfigurationModal';
+import type { ConfigurationForm } from '../../domain/schemas/ConfigurationSchemas';
+import { DEFAULT_BANNED_WORDS } from '../../domain/schemas/ConfigurationSchemas';
+
+// Mock next-intlayer
+vi.mock('next-intlayer', async () => {
+  const actual = await vi.importActual('next-intlayer');
+  return {
+    ...actual,
+    useIntlayer: () => ({
+      Modal: {
+        title: 'Configuration Settings',
+        description: 'Configure SEO and image processing settings',
+      },
+      Form: {
+        nameLabel: 'Configuration Name',
+        namePlaceholder: 'Enter configuration name',
+        saveButton: 'Save Configuration',
+        cancelButton: 'Cancel',
+      },
+      SeoSection: {
+        title: 'SEO Settings',
+        description: 'Configure SEO settings',
+        temperatureLabel: 'Creativity Level',
+        temperatureDescription: 'Controls creativity',
+        useImagesLabel: 'Use Images',
+        useImagesDescription: 'Include images',
+        bannedWordsLabel: 'Banned Words',
+        bannedWordsDescription: 'Words to remove',
+        bannedWordsPlaceholder: 'Enter word and press Enter',
+        addWordButton: 'Add Word',
+        removeWordButton: 'Remove',
+        resetToDefaultButton: 'Reset to Default',
+      },
+      ImageSection: {
+        title: 'Image Processing',
+        description: 'Configure image settings',
+        rotationDirectionLabel: 'Rotation Direction',
+        clockwise: 'Clockwise',
+        counterClockwise: 'Counter-clockwise',
+        rotationDegreesLabel: 'Rotation Degrees',
+        flipImageLabel: 'Flip Image',
+        flipImageDescription: 'Mirror the image',
+        watermarkLabel: 'Enable Watermark',
+        watermarkDescription: 'Add watermark',
+        watermarkImageLabel: 'Watermark Image',
+      },
+      Validation: {
+        nameRequired: 'Name is required',
+        temperatureRange: 'Temperature must be 0-100',
+        rotationDegreesInvalid: 'Invalid rotation degrees',
+      },
+    }),
+  };
+});
+
+/**
+ * Test suite for ConfigurationModal component.
+ *
+ * Tests form interactions, validation, and submission handling.
+ * Covers SEO and image configuration sections.
+ */
+describe('ConfigurationModal', () => {
+  const mockOnClose = vi.fn();
+  const mockOnSave = vi.fn();
+  const user = userEvent.setup();
+
+  const defaultProps = {
+    isOpen: true,
+    onClose: mockOnClose,
+    onSave: mockOnSave,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  const renderModal = (props = {}) => {
+    return render(
+      <IntlayerClientProvider locale="en">
+        <ConfigurationModal {...defaultProps} {...props} />
+      </IntlayerClientProvider>
+    );
+  };
+
+  /**
+   * Tests that the modal renders with all sections
+   */
+  it('should render modal with all configuration sections', () => {
+    renderModal();
+
+    expect(screen.getByText('Configuration Settings')).toBeInTheDocument();
+    expect(screen.getByText('SEO Settings')).toBeInTheDocument();
+    expect(screen.getByText('Image Processing')).toBeInTheDocument();
+    expect(screen.getByLabelText('Configuration Name')).toBeInTheDocument();
+  });
+
+  /**
+   * Tests form validation for required fields
+   */
+  it('should validate required configuration name field', async () => {
+    renderModal();
+
+    const nameInput = screen.getByLabelText('Configuration Name');
+    const saveButton = screen.getByText('Save Configuration');
+
+    // Clear the default name
+    await user.clear(nameInput);
+    
+    // Try to save with empty name
+    await user.click(saveButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Name is required')).toBeInTheDocument();
+    });
+
+    expect(mockOnSave).not.toHaveBeenCalled();
+  });
+
+  /**
+   * Tests temperature slider functionality
+   */
+  it('should handle temperature slider changes', async () => {
+    renderModal();
+
+    const temperatureSlider = screen.getByRole('slider');
+    
+    // Change slider value
+    fireEvent.change(temperatureSlider, { target: { value: '75' } });
+
+    expect(temperatureSlider).toHaveValue('75');
+  });
+
+  /**
+   * Tests checkbox interactions for SEO settings
+   */
+  it('should handle SEO checkbox interactions', async () => {
+    renderModal();
+
+    const useImagesCheckbox = screen.getByLabelText('Use Images');
+    
+    // Initially checked (default)
+    expect(useImagesCheckbox).toBeChecked();
+
+    // Uncheck the checkbox
+    await user.click(useImagesCheckbox);
+    expect(useImagesCheckbox).not.toBeChecked();
+
+    // Check it again
+    await user.click(useImagesCheckbox);
+    expect(useImagesCheckbox).toBeChecked();
+  });
+
+  /**
+   * Tests banned words functionality
+   */
+  it('should manage banned words list', async () => {
+    renderModal();
+
+    // Default banned words should be present
+    DEFAULT_BANNED_WORDS.forEach(word => {
+      expect(screen.getByText(word)).toBeInTheDocument();
+    });
+
+    // Add a new banned word
+    const wordInput = screen.getByPlaceholderText('Enter word and press Enter');
+    const addButton = screen.getByText('Add Word');
+
+    await user.type(wordInput, 'testword');
+    await user.click(addButton);
+
+    expect(screen.getByText('testword')).toBeInTheDocument();
+    expect(wordInput).toHaveValue('');
+  });
+
+  /**
+   * Tests adding banned word with Enter key
+   */
+  it('should add banned word on Enter key press', async () => {
+    renderModal();
+
+    const wordInput = screen.getByPlaceholderText('Enter word and press Enter');
+
+    await user.type(wordInput, 'newword');
+    await user.keyboard('{Enter}');
+
+    expect(screen.getByText('newword')).toBeInTheDocument();
+    expect(wordInput).toHaveValue('');
+  });
+
+  /**
+   * Tests removing banned words
+   */
+  it('should remove banned words when remove button clicked', async () => {
+    renderModal();
+
+    // Find first banned word and its remove button
+    const firstWord = DEFAULT_BANNED_WORDS[0];
+    const wordElement = screen.getByText(firstWord);
+    
+    // Find the remove button for this word (should be next sibling)
+    const removeButton = wordElement.parentElement?.querySelector('button');
+    expect(removeButton).toBeInTheDocument();
+
+    await user.click(removeButton!);
+
+    expect(screen.queryByText(firstWord)).not.toBeInTheDocument();
+  });
+
+  /**
+   * Tests reset to default banned words functionality
+   */
+  it('should reset banned words to default list', async () => {
+    renderModal();
+
+    // Add a custom word first
+    const wordInput = screen.getByPlaceholderText('Enter word and press Enter');
+    const addButton = screen.getByText('Add Word');
+
+    await user.type(wordInput, 'customword');
+    await user.click(addButton);
+
+    expect(screen.getByText('customword')).toBeInTheDocument();
+
+    // Reset to default
+    const resetButton = screen.getByText('Reset to Default');
+    await user.click(resetButton);
+
+    // Custom word should be gone, default words should remain
+    expect(screen.queryByText('customword')).not.toBeInTheDocument();
+    DEFAULT_BANNED_WORDS.forEach(word => {
+      expect(screen.getByText(word)).toBeInTheDocument();
+    });
+  });
+
+  /**
+   * Tests image configuration section
+   */
+  it('should handle image configuration changes', async () => {
+    renderModal();
+
+    // Test rotation direction
+    const rotationSelect = screen.getByDisplayValue('Clockwise');
+    await user.selectOptions(rotationSelect, 'counter-clockwise');
+    expect(screen.getByDisplayValue('Counter-clockwise')).toBeInTheDocument();
+
+    // Test rotation degrees
+    const degreesSelect = screen.getByDisplayValue('0°');
+    await user.selectOptions(degreesSelect, '90');
+    expect(screen.getByDisplayValue('90°')).toBeInTheDocument();
+
+    // Test flip image checkbox
+    const flipCheckbox = screen.getByLabelText('Flip Image');
+    expect(flipCheckbox).not.toBeChecked();
+    await user.click(flipCheckbox);
+    expect(flipCheckbox).toBeChecked();
+  });
+
+  /**
+   * Tests watermark functionality
+   */
+  it('should show watermark upload when watermark is enabled', async () => {
+    renderModal();
+
+    // Watermark upload should not be visible initially
+    expect(screen.queryByLabelText('Watermark Image')).not.toBeInTheDocument();
+
+    // Enable watermark
+    const watermarkCheckbox = screen.getByLabelText('Enable Watermark');
+    await user.click(watermarkCheckbox);
+
+    // Watermark upload should now be visible
+    expect(screen.getByLabelText('Watermark Image')).toBeInTheDocument();
+  });
+
+  /**
+   * Tests form submission with valid data
+   */
+  it('should submit form with valid configuration data', async () => {
+    const mockSave = vi.fn().mockResolvedValue(undefined);
+    renderModal({ onSave: mockSave });
+
+    const nameInput = screen.getByLabelText('Configuration Name');
+    const saveButton = screen.getByText('Save Configuration');
+
+    await user.clear(nameInput);
+    await user.type(nameInput, 'Test Configuration');
+
+    await user.click(saveButton);
+
+    await waitFor(() => {
+      expect(mockSave).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Test Configuration',
+          seo: expect.objectContaining({
+            temperature: expect.any(Number),
+            useImages: expect.any(Boolean),
+            bannedWords: expect.any(Array),
+          }),
+          image: expect.objectContaining({
+            rotationDirection: expect.any(String),
+            rotationDegrees: expect.any(Number),
+            flipImage: expect.any(Boolean),
+            enableWatermark: expect.any(Boolean),
+          }),
+        })
+      );
+    });
+  });
+
+  /**
+   * Tests modal close functionality
+   */
+  it('should close modal when cancel button is clicked', async () => {
+    renderModal();
+
+    const cancelButton = screen.getByText('Cancel');
+    await user.click(cancelButton);
+
+    expect(mockOnClose).toHaveBeenCalledTimes(1);
+  });
+
+  /**
+   * Tests that form resets when modal closes
+   */
+  it('should reset form when modal is closed and reopened', async () => {
+    const { rerender } = renderModal();
+
+    // Make some changes
+    const nameInput = screen.getByLabelText('Configuration Name');
+    await user.clear(nameInput);
+    await user.type(nameInput, 'Modified Name');
+
+    // Close modal
+    rerender(
+      <IntlayerClientProvider locale="en">
+        <ConfigurationModal {...defaultProps} isOpen={false} />
+      </IntlayerClientProvider>
+    );
+
+    // Reopen modal
+    rerender(
+      <IntlayerClientProvider locale="en">
+        <ConfigurationModal {...defaultProps} isOpen={true} />
+      </IntlayerClientProvider>
+    );
+
+    // Should be back to default name
+    expect(screen.getByDisplayValue('Default Configuration')).toBeInTheDocument();
+  });
+
+  /**
+   * Tests loading initial data into the form
+   */
+  it('should load initial data when provided', () => {
+    const initialData: ConfigurationForm = {
+      name: 'Custom Configuration',
+      seo: {
+        temperature: 75,
+        useImages: false,
+        bannedWords: ['custom', 'word'],
+      },
+      image: {
+        rotationDirection: 'counter-clockwise',
+        rotationDegrees: 180,
+        flipImage: true,
+        enableWatermark: true,
+        watermarkImage: 'watermark.png',
+      },
+    };
+
+    renderModal({ initialData });
+
+    expect(screen.getByDisplayValue('Custom Configuration')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('75')).toBeInTheDocument();
+    expect(screen.getByLabelText('Use Images')).not.toBeChecked();
+    expect(screen.getByText('custom')).toBeInTheDocument();
+    expect(screen.getByText('word')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Counter-clockwise')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('180°')).toBeInTheDocument();
+    expect(screen.getByLabelText('Flip Image')).toBeChecked();
+    expect(screen.getByLabelText('Enable Watermark')).toBeChecked();
+  });
+});

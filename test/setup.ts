@@ -73,7 +73,4 @@ vi.mock('@/lib/logger.client', () => ({
 }));
 
 // Mock environment variables
-Object.defineProperty(process.env, 'NODE_ENV', {
-  value: 'test',
-  writable: true
-});
+vi.stubEnv('NODE_ENV', 'test');
