@@ -514,10 +514,17 @@ Button.displayName = 'Button';
 ### MANDATORY Component using next-intlayer for translated text
 
 refer to these urls for how to use next-intlayer:
+- url: [https://intlayer.org/doc/concept/how-works-intlayer ]
+  why: [Intlayer concepts]
+- url: [https://intlayer.org/doc/concept/content/translation ]
+  why: [Intlayer translations files]
+- url: [https://intlayer.org/doc/environment/nextjs ]
+  why: [Intlayer content files]
+- url: [https://intlayer.org/doc/packages/next-intlayer/useIntlayer ]
+  why: [Intlayer useIntLayer usage in client side or server side]
 
-- https://intlayer.org/doc/concept/how-works-intlayer
-- https://intlayer.org/doc/concept/content/translation
-- https://intlayer.org/doc/environment/nextjs
+to access the string value of an IntLayerNode object, use the `.value` property
+
 
 ```typescript jsx
 'use client'
@@ -578,9 +585,11 @@ export default function Home() {
 
 co-locate all content files with the component that is using it
 reference:
+- url: [https://intlayer.org/doc/concept/content ]
+  why: [Intlayer content files]
+- url: [https://intlayer.org/doc/concept/per-locale-file ]
+  why: [Intlayer per locale files]
 
-- https://intlayer.org/doc/concept/content
-- https://intlayer.org/doc/concept/per-locale-file
 
 ```typescript
 import {type Dictionary, t} from "intlayer";
@@ -616,7 +625,10 @@ export default pageContent;
 
 ### Tailwindcss Component Pattern (RECOMMENDED)
 
-reference: https://catalyst.tailwindui.com/docs
+reference: 
+- url: [https://catalyst.tailwindui.com/docs ]
+  why: [Tailwindcss Catalyst documents]
+
 use the base components defined
 
 ```typescript jsx

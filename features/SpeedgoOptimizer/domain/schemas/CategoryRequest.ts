@@ -15,7 +15,7 @@ export const CategoryInputDataSchema = z.object({
 
 // Schema for individual categorization request item
 export const CategoryRequestItemSchema = z.object({
-  language: z.enum(["en", "ko"]).default("en").describe("Language for categorization"),
+  language: z.string().default("en").describe("Language for categorization"),
   semantic_top_k: z.number().int().min(1).max(50).default(15).describe("Number of semantic matches to consider"),
   first_category_via_llm: z.boolean().default(false).describe("Use LLM for first category determination"),
   descriptive_title_via_llm: z.boolean().default(true).describe("Use LLM for descriptive title generation"),

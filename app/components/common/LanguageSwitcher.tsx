@@ -1,10 +1,12 @@
 'use client';
 
-import { useLocale, useIntlayer } from 'next-intlayer';
+import {useLocale, useIntlayer, useLocaleCookie} from 'next-intlayer';
 import { Fragment, ReactElement } from 'react';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { ChevronDownIcon, GlobeAltIcon } from '@heroicons/react/20/solid';
 import clsx from 'clsx';
+import {getLocaleName, getLocalizedUrl, getHTMLTextDir} from "intlayer";
+import Link from "next/link";
 
 /**
  * Language switcher dropdown component.
@@ -19,20 +21,9 @@ import clsx from 'clsx';
  * ```
  */
 export const LanguageSwitcher = (): ReactElement => {
-  const { locale, availableLocales, setLocale } = useLocale();
-  const content = useIntlayer<'language-switcher'>('language-switcher');
-
-  // Language display names - these will automatically use the current locale context
-  const getLanguageName = (localeCode: string): string => {
-    switch(localeCode) {
-      case 'en':
-        return content.languages.english.toString();
-      case 'ko':
-        return content.languages.korean.toString();
-      default:
-        return localeCode;
-    }
-  };
+  const { locale, availableLocales, pathWithoutLocale } = useLocale();
+  const {setLocaleCookie} = useLocaleCookie();
+  const content = useIntlayer<'language-switcher'>('language-switcher', locale);
 
   // Language flags/icons
   const languageFlags: Record<string, string> = {
@@ -41,18 +32,17 @@ export const LanguageSwitcher = (): ReactElement => {
   };
 
   const handleLocaleChange = (newLocale: string): void => {
-    // TypeScript doesn't recognize the locale string as a valid LocalesValues
-    // but we know it's valid since it comes from availableLocales
-    setLocale(newLocale as typeof locale);
+    // Set the locale cookie to persist user preference across page reloads
+    setLocaleCookie(newLocale as typeof locale);
   };
 
   return (
-    <Menu as="div" className="relative inline-block text-left">
+    <Menu as="div" className="relative inline-block text-left" key={locale}>
       <MenuButton className="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
         <GlobeAltIcon className="h-4 w-4 text-gray-400" aria-hidden="true" />
-        <span className="sr-only">{content.switchLanguage.toString()}</span>
+        <span className="sr-only">{content.switchLanguage.value}</span>
         <span className="hidden sm:inline">
-          {languageFlags[locale]} {getLanguageName(locale)}
+          {languageFlags[locale]} {getLocaleName(locale)}
         </span>
         <span className="sm:hidden">
           {languageFlags[locale]}
@@ -67,7 +57,10 @@ export const LanguageSwitcher = (): ReactElement => {
         <div className="py-1">
           {availableLocales.map((availableLocale) => (
             <MenuItem key={availableLocale} as={Fragment}>
-              <button
+              <Link
+                href={getLocalizedUrl(pathWithoutLocale, availableLocale)}
+                hrefLang={availableLocale}
+                aria-current={locale === availableLocale ? "page" : undefined}
                 onClick={() => handleLocaleChange(availableLocale)}
                 className={clsx(
                   'block w-full px-4 py-2 text-left text-sm transition-colors',
@@ -80,14 +73,14 @@ export const LanguageSwitcher = (): ReactElement => {
                   <span className="text-base">
                     {languageFlags[availableLocale]}
                   </span>
-                  <span>
-                    {getLanguageName(availableLocale)}
+                  <span dir={getHTMLTextDir(availableLocale)} lang={availableLocale}>
+                    {getLocaleName(availableLocale, locale)}
                   </span>
                   {locale === availableLocale && (
                     <span className="ml-auto text-xs text-gray-500">✓</span>
                   )}
                 </span>
-              </button>
+              </Link>
             </MenuItem>
           ))}
         </div>

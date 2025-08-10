@@ -2,15 +2,17 @@ import {type CategoryRequestItem, CategoryRequestItemSchema} from "@features/Spe
 import {RowData} from "@tanstack/table-core";
 import { ZodError } from "zod";
 import { createValidationErrorMessage } from "@/lib/zod-error-formatter";
+import { Locales } from "intlayer";
 
 /**
  * Transforms processed Excel data into format expected by categorization API
  * 
  * @param excelData - Array of row data from processed Excel file
+ * @param locale - Language locale to use for categorization (defaults to Locales.KOREAN)
  * @returns Array of CategoryRequestItem objects ready for API submission
  * @throws Error with human-readable message if validation fails
  */
-export function transformExcelDataToCategorizationRequest(excelData: RowData[]): CategoryRequestItem[] {
+export function transformExcelDataToCategorizationRequest(excelData: RowData[], locale: Locales = Locales.KOREAN): CategoryRequestItem[] {
   const transformedData = excelData.slice(2).map((row, index) => {
     // Extract data from Excel columns (assuming standard column layout)
     // Skip the header row (index 0) with slice(1)
@@ -23,7 +25,7 @@ export function transformExcelDataToCategorizationRequest(excelData: RowData[]):
     const salesStatus = String(rowData.F || 'Unknown');
 
     const item = {
-      language: "ko" as const,
+      language: locale,
       semantic_top_k: 15,
       first_category_via_llm: false,
       descriptive_title_via_llm: true,

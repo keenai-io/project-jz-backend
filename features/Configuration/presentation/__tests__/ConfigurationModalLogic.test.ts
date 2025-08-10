@@ -5,7 +5,6 @@
 
 import { describe, it, expect } from 'vitest';
 import { 
-  ConfigurationValidation, 
   ConfigurationFormSchema,
   DEFAULT_BANNED_WORDS,
   type ConfigurationForm 
@@ -57,7 +56,7 @@ describe('ConfigurationModal Business Logic', () => {
       seo: {
         temperature: 150, // Invalid: > 100
         useImages: true,
-        bannedWords: DEFAULT_BANNED_WORDS,
+        bannedWords: [...DEFAULT_BANNED_WORDS],
       },
       image: {
         rotationDirection: 'clockwise',
@@ -87,7 +86,7 @@ describe('ConfigurationModal Business Logic', () => {
       seo: {
         temperature: 50,
         useImages: true,
-        bannedWords: DEFAULT_BANNED_WORDS,
+        bannedWords: [...DEFAULT_BANNED_WORDS],
       },
       image: {
         rotationDirection: 'clockwise',
@@ -117,7 +116,7 @@ describe('ConfigurationModal Business Logic', () => {
       seo: {
         temperature: 50,
         useImages: true,
-        bannedWords: DEFAULT_BANNED_WORDS,
+        bannedWords: [...DEFAULT_BANNED_WORDS],
       },
       image: {
         rotationDirection: 'clockwise',

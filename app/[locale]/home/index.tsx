@@ -12,10 +12,11 @@ import {useDropzone} from "react-dropzone";
 import {CloudArrowUpIcon} from "@heroicons/react/16/solid";
 import {Button} from "@components/ui/button";
 import {Text} from "@components/ui/text";
-import {useIntlayer} from "next-intlayer";
+import {useIntlayer, useLocale} from "next-intlayer";
 import {RowData} from "@tanstack/table-core";
 import {CategoryResponseItem} from "@features/SpeedgoOptimizer/domain/schemas/CategoryResponse";
 import clientLogger from "@/lib/logger.client";
+import {Locales} from "intlayer";
 
 export default function Home() {
   const [files, setFiles] = useState<File[]>([]);
@@ -24,6 +25,7 @@ export default function Home() {
   const [processingResult, setProcessingResult] = useState<string | null>(null);
   const [categorizationResults, setCategorizationResults] = useState<CategoryResponseItem[] | null>(null);
   const [isPending, startTransition] = useTransition();
+  const { locale } = useLocale();
   const content = useIntlayer<'home'>("home")
 
   const onDrop = (acceptedFiles: File[]) => {
@@ -38,7 +40,7 @@ export default function Home() {
         accepted: filesToAdd.length,
         maxFiles: 3
       });
-      setProcessingResult(`Maximum 3 files allowed. Only ${filesToAdd.length} files were added.`);
+      setProcessingResult(content.ProcessSection.maxFilesWarning.value.replace('{accepted}', filesToAdd.length.toString()));
     }
 
     // Clear preview when adding new files to avoid stale data
@@ -83,13 +85,13 @@ export default function Home() {
 
   const handleProcessFiles = async (): Promise<void> => {
     if (files.length === 0) {
-      setProcessingResult("Please upload files to process.");
+      setProcessingResult(content.ProcessSection.noFilesToProcess.value);
       return;
     }
 
     startTransition(async () => {
       try {
-        setProcessingResult("Processing files...");
+        setProcessingResult(content.ProcessSection.processingFiles.value);
 
         // Process all files and collect their data with 3000 record limit
         const allProcessedData: RowData[] = [];
@@ -136,18 +138,18 @@ export default function Home() {
         }
 
         if (allProcessedData.length === 0) {
-          setProcessingResult("No valid records found in the uploaded files.");
+          setProcessingResult(content.ProcessSection.noValidRecords.value);
           return;
         }
 
         if (totalRecordCount >= maxRecords) {
-          setProcessingResult(`Processing ${totalRecordCount} records (maximum limit reached)...`);
+          setProcessingResult(content.ProcessSection.processingRecordsLimit.value.replace('{count}', totalRecordCount.toString()));
         } else {
-          setProcessingResult(`Processing ${totalRecordCount} records from ${files.length} file(s)...`);
+          setProcessingResult(content.ProcessSection.processingRecords.value.replace('{count}', totalRecordCount.toString()).replace('{fileCount}', files.length.toString()));
         }
 
         // Transform the data for the categorization API
-        const categorizationRequest = transformExcelDataToCategorizationRequest(allProcessedData);
+        const categorizationRequest = transformExcelDataToCategorizationRequest(allProcessedData, locale as Locales);
         clientLogger.debug('Transformed data for categorization API', 'categorization', {
           requestCount: categorizationRequest.length
         });
@@ -156,13 +158,13 @@ export default function Home() {
         const result = await submitProductCategorization(categorizationRequest);
 
         if (result.success) {
-          setProcessingResult(`Successfully processed ${result.data.length} products. Categories received!`);
+          setProcessingResult(content.ProcessSection.successProcessed.value.replace('{count}', result.data.length.toString()));
           setCategorizationResults(result.data);
           clientLogger.info('Categorization completed successfully', 'ui', {
             processedProducts: result.data.length
           });
         } else {
-          setProcessingResult(`Processing failed: ${result.error}`);
+          setProcessingResult(content.ProcessSection.processingFailed.value.replace('{error}', result.error || ''));
           setCategorizationResults(null);
           clientLogger.warn('Categorization processing failed', 'ui', {
             error: result.error
@@ -172,7 +174,7 @@ export default function Home() {
       } catch (error) {
         const errorObj = error instanceof Error ? error : new Error('Unknown error processing files');
         clientLogger.error('Error processing files in UI', errorObj, 'ui');
-        setProcessingResult(`Error processing files: ${errorObj.message}`);
+        setProcessingResult(content.ProcessSection.errorProcessing.value.replace('{error}', errorObj.message));
         setCategorizationResults(null);
       }
     });
@@ -186,7 +188,7 @@ export default function Home() {
           {files.length > 0 ?
             <div className="space-y-2">
               <div className="text-sm text-gray-600 mb-2">
-                Files ready for processing ({files.length}/3 max, ~3000 records limit):
+                {content.ProcessSection.filesReady.value.replace('{current}', files.length.toString()).replace('{max}', '3')}
               </div>
               {files.map((file, index) => (
                 <FileListItem key={index} name={file.name} selected={index === previewFileIndex}
@@ -200,7 +202,7 @@ export default function Home() {
                   className="w-full py-2 px-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 transition-colors"
                 >
                   <input {...getInputProps()} />
-                  + Add more files ({3 - files.length} remaining)
+                  {content.ProcessSection.addMoreFiles.value.replace('{remaining}', (3 - files.length).toString())}
                 </button>
               )}
             </div>
@@ -224,16 +226,16 @@ export default function Home() {
         </div>
 
         <div className='flex flex-col justify-center items-center space-y-4'>
-          <Text className='text-xl'>Process all uploaded files automatically</Text>
+          <Text className='text-xl'>{content.ProcessSection.title}</Text>
           <Text className='text-sm text-gray-600 text-center'>
-            All files will be processed together (up to 3000 total records)
+            {content.ProcessSection.description}
           </Text>
           <div>
             <Button
               onClick={handleProcessFiles}
               disabled={isPending || files.length === 0}
             >
-              {isPending ? 'Processing...' : `Process ${files.length} file(s)`}
+              {isPending ? content.ProcessSection.processingButton : content.ProcessSection.processFileCountButton.value.replace('{count}', files.length.toString())}
             </Button>
           </div>
           {processingResult && (
@@ -259,7 +261,7 @@ export default function Home() {
       </div>
       {previewFileIndex !== -1 && previewFileIndex < files.length && files[previewFileIndex] && previewRows && previewRows.length > 0 && (
         <div className='px-4 py-8 sm:px-6 lg:px-8'>
-          <Text>Preview: {files[previewFileIndex]?.name} (first 100 rows)</Text>
+          <Text>{content.ProcessSection.previewTitle.value.replace('{fileName}', files[previewFileIndex]?.name || '')}</Text>
           <div
             className="overflow-auto whitespace-nowrap w-full h-60 relative rounded-lg border-2 border-solid border-gray-300 p-4 text-left hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden">
             <PreviewTable rows={previewRows}/>

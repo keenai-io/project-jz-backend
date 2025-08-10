@@ -240,7 +240,7 @@ export function ConfigurationModal({
                       value={newBannedWord}
                       onChange={(e) => setNewBannedWord(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      placeholder={String(content.SeoSection.bannedWordsPlaceholder)}
+                      placeholder={String(content.SeoSection.bannedWordsPlaceholder.value)}
                     />
                   </InputGroup>
                   <Button

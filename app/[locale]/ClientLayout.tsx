@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactElement, ReactNode, useState, useCallback } from 'react';
+import { ReactElement, ReactNode, useState, useCallback, MouseEvent } from 'react';
 import { StackedLayout } from "@components/ui/stacked-layout";
 import { Navbar, NavbarDivider, NavbarItem, NavbarSection, NavbarSpacer } from "@components/ui/navbar";
 import { Avatar } from '@components/ui/avatar'
@@ -27,38 +27,20 @@ import { Text } from "@components/ui/text";
 import { LanguageSwitcher } from '@components/common/LanguageSwitcher';
 import { ConfigurationModal } from '@features/Configuration';
 import type { ConfigurationForm } from '@features/Configuration';
+import {useIntlayer, useLocale} from "next-intlayer";
 
 interface ClientLayoutProps {
   children: ReactNode;
-  content: {
-    navigation: {
-      configurations: string;
-      dashboard: string;
-    };
-    userMenu: {
-      support: string;
-      myProfile: string;
-      settings: string;
-      privacyPolicy: string;
-      shareFeedback: string;
-      signOut: string;
-    };
-    teamDropdown: {
-      settings: string;
-      tailwindLabs: string;
-      workcation: string;
-      newTeam: string;
-    };
-  };
 }
 
 /**
  * Client-side layout component that manages the configuration modal state
  */
-export function ClientLayout({ children, content }: ClientLayoutProps): ReactElement {
+export function ClientLayout({ children }: ClientLayoutProps): ReactElement {
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
-
-  const handleConfigurationClick = useCallback((e: React.MouseEvent): void => {
+  const { locale } = useLocale();
+  const content = useIntlayer<'layout'>("layout", locale);
+  const handleConfigurationClick = useCallback((e: MouseEvent): void => {
     e.preventDefault();
     setIsConfigModalOpen(true);
   }, []);
@@ -122,6 +104,7 @@ export function ClientLayout({ children, content }: ClientLayoutProps): ReactEle
   return (
     <>
       <StackedLayout
+        key={locale}
         navbar={
           <Navbar>
             <Dropdown>
@@ -135,7 +118,7 @@ export function ClientLayout({ children, content }: ClientLayoutProps): ReactEle
             <NavbarSection className="max-lg:hidden">
               {getNavItems().map(({ label, url, onClick }) => (
                 <NavbarItem 
-                  key={label} 
+                  key={label.value}
                   href={url}
                   onClick={onClick}
                 >
@@ -145,12 +128,10 @@ export function ClientLayout({ children, content }: ClientLayoutProps): ReactEle
             </NavbarSection>
             <NavbarSpacer />
             <NavbarSection>
-              <NavbarItem href="/support" aria-label={content.userMenu.support}>
+              <NavbarItem href="/support" aria-label={content.userMenu.support.value}>
                 <Text>{content.userMenu.support}</Text>
               </NavbarItem>
-              <NavbarItem>
-                <LanguageSwitcher />
-              </NavbarItem>
+              <LanguageSwitcher />
               <Dropdown>
                 <DropdownButton as={NavbarItem}>
                   <Avatar src="/profile-photo.jpg" square />
@@ -198,7 +179,7 @@ export function ClientLayout({ children, content }: ClientLayoutProps): ReactEle
               <SidebarSection>
                 {getNavItems().map(({ label, url, onClick }) => (
                   <SidebarItem 
-                    key={label} 
+                    key={label.value}
                     href={url}
                     onClick={onClick}
                   >
