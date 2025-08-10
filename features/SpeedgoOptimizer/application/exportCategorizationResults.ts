@@ -172,12 +172,16 @@ export async function exportCategorizationResultsToExcel(
   
   try {
     // Validate input
-    if (!results || results.length === 0) {
+    if (!results) {
+      throw new Error('No results to export');
+    }
+    
+    if (results.length === 0) {
       throw new Error('No results to export');
     }
     
     clientLogger.info('Starting Excel export', 'file', {
-      resultCount: results.length,
+      resultCount: results ? results.length : 0,
       config
     });
     
@@ -229,7 +233,7 @@ export async function exportCategorizationResultsToExcel(
     const errorObj = error instanceof Error ? error : new Error('Unknown export error');
     
     clientLogger.error('Failed to export categorization results [exportCategorizationResults.ts]', errorObj, 'file', {
-      resultCount: results.length,
+      resultCount: results ? results.length : 0,
       duration,
       config
     });
@@ -279,6 +283,10 @@ export function formatFileSize(bytes: number): string {
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
+  const value = bytes / Math.pow(k, i);
   
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+  // Always show one decimal place for KB and above
+  const formatted = i > 0 ? value.toFixed(1) : value.toString();
+  
+  return `${formatted} ${sizes[i]}`;
 }

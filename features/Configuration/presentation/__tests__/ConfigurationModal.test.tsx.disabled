@@ -6,7 +6,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { IntlayerClientProvider } from 'next-intlayer';
 import { ConfigurationModal } from '../ConfigurationModal';
 import type { ConfigurationForm } from '../../domain/schemas/ConfigurationSchemas';
 import { DEFAULT_BANNED_WORDS } from '../../domain/schemas/ConfigurationSchemas';
@@ -85,11 +84,7 @@ describe('ConfigurationModal', () => {
   });
 
   const renderModal = (props = {}) => {
-    return render(
-      <IntlayerClientProvider locale="en">
-        <ConfigurationModal {...defaultProps} {...props} />
-      </IntlayerClientProvider>
-    );
+    return render(<ConfigurationModal {...defaultProps} {...props} />);
   };
 
   /**
@@ -341,18 +336,10 @@ describe('ConfigurationModal', () => {
     await user.type(nameInput, 'Modified Name');
 
     // Close modal
-    rerender(
-      <IntlayerClientProvider locale="en">
-        <ConfigurationModal {...defaultProps} isOpen={false} />
-      </IntlayerClientProvider>
-    );
+    rerender(<ConfigurationModal {...defaultProps} isOpen={false} />);
 
     // Reopen modal
-    rerender(
-      <IntlayerClientProvider locale="en">
-        <ConfigurationModal {...defaultProps} isOpen={true} />
-      </IntlayerClientProvider>
-    );
+    rerender(<ConfigurationModal {...defaultProps} isOpen={true} />);
 
     // Should be back to default name
     expect(screen.getByDisplayValue('Default Configuration')).toBeInTheDocument();
