@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactElement, ReactNode, useState, useCallback, lazy, Suspense } from 'react';
+import { ReactElement, ReactNode, useState, useCallback } from 'react';
 import { StackedLayout } from "@components/ui/stacked-layout";
 import { Navbar, NavbarDivider, NavbarItem, NavbarSection, NavbarSpacer } from "@components/ui/navbar";
 import { Avatar } from '@components/ui/avatar'
@@ -24,12 +24,9 @@ import {
 } from '@heroicons/react/16/solid'
 import Image from 'next/image'
 import { Text } from "@components/ui/text";
+import { LanguageSwitcher } from '@components/common/LanguageSwitcher';
+import { ConfigurationModal } from '@features/Configuration';
 import type { ConfigurationForm } from '@features/Configuration';
-
-// Lazy load the ConfigurationModal to avoid SSG issues
-const ConfigurationModal = lazy(() => import('@features/Configuration').then(module => ({
-  default: module.ConfigurationModal
-})));
 
 interface ClientLayoutProps {
   children: ReactNode;
@@ -151,6 +148,9 @@ export function ClientLayout({ children, content }: ClientLayoutProps): ReactEle
               <NavbarItem href="/support" aria-label={content.userMenu.support}>
                 <Text>{content.userMenu.support}</Text>
               </NavbarItem>
+              <NavbarItem>
+                <LanguageSwitcher />
+              </NavbarItem>
               <Dropdown>
                 <DropdownButton as={NavbarItem}>
                   <Avatar src="/profile-photo.jpg" square />
@@ -215,13 +215,11 @@ export function ClientLayout({ children, content }: ClientLayoutProps): ReactEle
 
       {/* Configuration Modal */}
       {isConfigModalOpen && (
-        <Suspense fallback={null}>
-          <ConfigurationModal
-            isOpen={isConfigModalOpen}
-            onClose={() => setIsConfigModalOpen(false)}
-            onSave={handleConfigSave}
-          />
-        </Suspense>
+        <ConfigurationModal
+          isOpen={isConfigModalOpen}
+          onClose={() => setIsConfigModalOpen(false)}
+          onSave={handleConfigSave}
+        />
       )}
     </>
   );

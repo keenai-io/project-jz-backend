@@ -6,55 +6,55 @@ const layoutContent = {
     navigation: {
       configurations: t({
         en: "Configurations",
-        // Add other locales as needed
+        ko: "설정",
       }),
       dashboard: t({
         en: "Dashboard",
-        // Add other locales as needed
+        ko: "대시보드",
       }),
     },
     userMenu: {
       support: t({
         en: "Support",
-        // Add other locales as needed
+        ko: "지원",
       }),
       myProfile: t({
         en: "My profile",
-        // Add other locales as needed
+        ko: "내 프로필",
       }),
       settings: t({
         en: "Settings",
-        // Add other locales as needed
+        ko: "설정",
       }),
       privacyPolicy: t({
         en: "Privacy policy",
-        // Add other locales as needed
+        ko: "개인정보 처리방침",
       }),
       shareFeedback: t({
         en: "Share feedback",
-        // Add other locales as needed
+        ko: "피드백 공유",
       }),
       signOut: t({
         en: "Sign out",
-        // Add other locales as needed
+        ko: "로그아웃",
       }),
     },
     teamDropdown: {
       settings: t({
         en: "Settings",
-        // Add other locales as needed
+        ko: "설정",
       }),
       tailwindLabs: t({
         en: "Tailwind Labs",
-        // Add other locales as needed
+        ko: "테일윈드 랩스",
       }),
       workcation: t({
         en: "Workcation",
-        // Add other locales as needed
+        ko: "워케이션",
       }),
       newTeam: t({
         en: "New team…",
-        // Add other locales as needed
+        ko: "새 팀…",
       }),
     },
   },
