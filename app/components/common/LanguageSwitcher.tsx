@@ -42,7 +42,7 @@ export const LanguageSwitcher = (): ReactElement => {
         <GlobeAltIcon className="h-4 w-4 text-gray-400" aria-hidden="true" />
         <span className="sr-only">{content.switchLanguage.value}</span>
         <span className="hidden sm:inline">
-          {languageFlags[locale]} {getLocaleName(locale)}
+          {languageFlags[locale]} {getLocaleName(locale, locale)}
         </span>
         <span className="sm:hidden">
           {languageFlags[locale]}
@@ -74,7 +74,7 @@ export const LanguageSwitcher = (): ReactElement => {
                     {languageFlags[availableLocale]}
                   </span>
                   <span dir={getHTMLTextDir(availableLocale)} lang={availableLocale}>
-                    {getLocaleName(availableLocale, locale)}
+                    {getLocaleName(availableLocale, availableLocale)}
                   </span>
                   {locale === availableLocale && (
                     <span className="ml-auto text-xs text-gray-500">✓</span>
