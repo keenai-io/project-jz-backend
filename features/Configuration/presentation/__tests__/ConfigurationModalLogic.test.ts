@@ -22,7 +22,6 @@ describe('ConfigurationModal Business Logic', () => {
    */
   it('should validate valid configuration form data', () => {
     const validConfig: ConfigurationForm = {
-      name: 'Test Configuration',
       seo: {
         temperature: 75,
         useImages: true,
@@ -41,7 +40,6 @@ describe('ConfigurationModal Business Logic', () => {
     expect(result.success).toBe(true);
     
     if (result.success) {
-      expect(result.data.name).toBe('Test Configuration');
       expect(result.data.seo.temperature).toBe(75);
       expect(result.data.image.rotationDegrees).toBe(90);
     }
@@ -52,7 +50,6 @@ describe('ConfigurationModal Business Logic', () => {
    */
   it('should reject configuration with invalid temperature', () => {
     const invalidConfig: ConfigurationForm = {
-      name: 'Test Configuration',
       seo: {
         temperature: 150, // Invalid: > 100
         useImages: true,
@@ -82,7 +79,6 @@ describe('ConfigurationModal Business Logic', () => {
    */
   it('should reject configuration with invalid rotation degrees', () => {
     const invalidConfig: ConfigurationForm = {
-      name: 'Test Configuration',
       seo: {
         temperature: 50,
         useImages: true,
@@ -90,7 +86,7 @@ describe('ConfigurationModal Business Logic', () => {
       },
       image: {
         rotationDirection: 'clockwise',
-        rotationDegrees: 45, // Invalid: not 0, 90, 180, or 270
+        rotationDegrees: 400, // Invalid: exceeds max of 360
         flipImage: false,
         enableWatermark: false,
       },
@@ -107,35 +103,6 @@ describe('ConfigurationModal Business Logic', () => {
     }
   });
 
-  /**
-   * Tests validation requires name field
-   */
-  it('should require configuration name to be non-empty', () => {
-    const invalidConfig = {
-      name: '', // Empty name should fail validation
-      seo: {
-        temperature: 50,
-        useImages: true,
-        bannedWords: [...DEFAULT_BANNED_WORDS],
-      },
-      image: {
-        rotationDirection: 'clockwise',
-        rotationDegrees: 90,
-        flipImage: false,
-        enableWatermark: false,
-      },
-    };
-
-    const result = ConfigurationFormSchema.safeParse(invalidConfig);
-    expect(result.success).toBe(false);
-    
-    if (!result.success) {
-      expect(result.error.issues).toBeDefined();
-      expect(result.error.issues.some(issue => 
-        issue.path.includes('name')
-      )).toBe(true);
-    }
-  });
 
   /**
    * Tests default banned words are provided
@@ -155,7 +122,6 @@ describe('ConfigurationModal Business Logic', () => {
    */
   it('should accept configuration with minimal valid data', () => {
     const minimalConfig: ConfigurationForm = {
-      name: 'Minimal Config',
       seo: {
         temperature: 0,
         useImages: false,
@@ -178,7 +144,6 @@ describe('ConfigurationModal Business Logic', () => {
    */
   it('should accept configuration with maximum valid values', () => {
     const maximalConfig: ConfigurationForm = {
-      name: 'Maximal Configuration Name That Is Very Long',
       seo: {
         temperature: 100,
         useImages: true,

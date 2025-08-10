@@ -67,23 +67,23 @@ describe('Configuration Schemas', () => {
       const result = ImageConfigurationSchema.parse({});
       
       expect(result.rotationDirection).toBe('clockwise');
-      expect(result.rotationDegrees).toBe(0);
+      expect(result.rotationDegrees).toBe(25);
       expect(result.flipImage).toBe(false);
       expect(result.enableWatermark).toBe(false);
     });
 
     it('should reject invalid rotation degrees', () => {
       expect(() => ImageConfigurationSchema.parse({
-        rotationDegrees: 45
+        rotationDegrees: 400
       })).toThrow();
 
       expect(() => ImageConfigurationSchema.parse({
-        rotationDegrees: 360
+        rotationDegrees: -400
       })).toThrow();
     });
 
     it('should accept valid rotation degrees', () => {
-      [0, 90, 180, 270].forEach(degrees => {
+      [0, 25, 45, 90, 180, 270, 360, -90, -180].forEach(degrees => {
         const result = ImageConfigurationSchema.parse({
           rotationDegrees: degrees
         });
@@ -132,7 +132,6 @@ describe('Configuration Schemas', () => {
   describe('ConfigurationFormSchema', () => {
     it('should exclude auto-generated fields', () => {
       const formData = {
-        name: 'Form Test',
         seo: {
           temperature: 80,
           useImages: true,
@@ -149,6 +148,7 @@ describe('Configuration Schemas', () => {
       const result = ConfigurationFormSchema.parse(formData);
       expect(result).toEqual(formData);
       expect(result).not.toHaveProperty('id');
+      expect(result).not.toHaveProperty('name');
       expect(result).not.toHaveProperty('createdAt');
       expect(result).not.toHaveProperty('updatedAt');
     });
@@ -157,7 +157,6 @@ describe('Configuration Schemas', () => {
   describe('ConfigurationValidation', () => {
     it('should validate configuration form data', () => {
       const formData = {
-        name: 'Validation Test',
         seo: {
           temperature: 70,
           useImages: true,
@@ -177,7 +176,6 @@ describe('Configuration Schemas', () => {
 
     it('should throw on invalid configuration form data', () => {
       const invalidFormData = {
-        name: '', // Empty name should fail
         seo: {
           temperature: 150, // Invalid temperature
           useImages: true,

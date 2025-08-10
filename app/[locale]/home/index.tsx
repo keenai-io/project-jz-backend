@@ -260,7 +260,7 @@ export default function Home() {
         </div>
       </div>
       {previewFileIndex !== -1 && previewFileIndex < files.length && files[previewFileIndex] && previewRows && previewRows.length > 0 && (
-        <div className='px-4 py-8 sm:px-6 lg:px-8'>
+        <div className='mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8'>
           <Text>{content.ProcessSection.previewTitle.value.replace('{fileName}', files[previewFileIndex]?.name || '')}</Text>
           <div
             className="overflow-auto whitespace-nowrap w-full h-60 relative rounded-lg border-2 border-solid border-gray-300 p-4 text-left hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden">
@@ -271,7 +271,7 @@ export default function Home() {
 
       {/* Display categorization results when available */}
       {categorizationResults && categorizationResults.length > 0 && (
-        <div className='px-4 py-8 sm:px-6 lg:px-8'>
+        <div className='mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8'>
           <CategoryResultsTable
             results={categorizationResults}
             onProductSelect={(product) => {

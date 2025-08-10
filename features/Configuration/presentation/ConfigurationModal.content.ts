@@ -14,16 +14,8 @@ const configurationModalContent = {
       }),
     },
     Form: {
-      nameLabel: t({
-        en: "Configuration Name",
-        ko: "설정 이름",
-      }),
-      namePlaceholder: t({
-        en: "Enter configuration name",
-        ko: "설정 이름을 입력하세요",
-      }),
       saveButton: t({
-        en: "Save Configuration",
+        en: "Save Settings",
         ko: "설정 저장",
       }),
       cancelButton: t({
@@ -65,8 +57,8 @@ const configurationModalContent = {
         ko: "제품명에 있을 경우 제거할 단어들",
       }),
       bannedWordsPlaceholder: t({
-        en: "Enter word and press Enter to add",
-        ko: "단어를 입력하고 Enter를 눌러 추가하세요",
+        en: "new banned word",
+        ko: "새 금지 단어",
       }),
       addWordButton: t({
         en: "Add Word",
@@ -136,17 +128,13 @@ const configurationModalContent = {
       }),
     },
     Validation: {
-      nameRequired: t({
-        en: "Configuration name is required",
-        ko: "설정 이름이 필요합니다",
-      }),
       temperatureRange: t({
         en: "Temperature must be between 0 and 100",
         ko: "온도는 0에서 100 사이여야 합니다",
       }),
       rotationDegreesInvalid: t({
-        en: "Rotation degrees must be 0, 90, 180, or 270",
-        ko: "회전 각도는 0, 90, 180, 또는 270이어야 합니다",
+        en: "Rotation degrees must be between -360 and 360",
+        ko: "회전 각도는 -360에서 360 사이여야 합니다",
       }),
       wordAlreadyExists: t({
         en: "This word is already in the banned words list",
@@ -159,15 +147,15 @@ const configurationModalContent = {
     },
     Messages: {
       saveSuccess: t({
-        en: "Configuration saved successfully",
+        en: "Settings saved successfully",
         ko: "설정이 성공적으로 저장되었습니다",
       }),
       saveError: t({
-        en: "Failed to save configuration. Please try again.",
+        en: "Failed to save settings. Please try again.",
         ko: "설정 저장에 실패했습니다. 다시 시도해 주세요.",
       }),
       loadError: t({
-        en: "Failed to load configuration",
+        en: "Failed to load settings",
         ko: "설정 로드에 실패했습니다",
       }),
     },

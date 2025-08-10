@@ -37,10 +37,8 @@ export const ImageConfigurationSchema = z.object({
   /** Rotation direction */
   rotationDirection: ImageRotationDirectionSchema.default('clockwise'),
   
-  /** Rotation degrees (0, 90, 180, 270) */
-  rotationDegrees: z.number().refine((val) => [0, 90, 180, 270].includes(val), {
-    message: "Rotation degrees must be 0, 90, 180, or 270"
-  }).default(0),
+  /** Rotation degrees (any number, default 25) */
+  rotationDegrees: z.number().min(-360).max(360).default(25),
   
   /** Whether to flip the image */
   flipImage: z.boolean().default(false),
@@ -82,10 +80,11 @@ export type Configuration = z.infer<typeof ConfigurationSchema>;
 
 /**
  * Configuration Form Schema
- * Used for form validation (excludes auto-generated fields)
+ * Used for form validation (excludes auto-generated fields and name)
  */
 export const ConfigurationFormSchema = ConfigurationSchema.omit({
   id: true,
+  name: true,
   createdAt: true,
   updatedAt: true,
 });

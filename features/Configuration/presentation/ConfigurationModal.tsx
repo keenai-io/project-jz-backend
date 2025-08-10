@@ -51,7 +51,6 @@ export function ConfigurationModal({
 
   // Default form values
   const defaultValues: ConfigurationForm = {
-    name: 'Default Configuration',
     seo: {
       temperature: 50,
       useImages: true,
@@ -59,7 +58,7 @@ export function ConfigurationModal({
     },
     image: {
       rotationDirection: 'clockwise' as ImageRotationDirection,
-      rotationDegrees: 0,
+      rotationDegrees: 25,
       flipImage: false,
       enableWatermark: false,
     }
@@ -144,33 +143,6 @@ export function ConfigurationModal({
           }}
           className="space-y-8"
         >
-          {/* Configuration Name */}
-          <form.Field
-            name="name"
-            validators={{
-              onChange: ({value}) =>
-                !value || value.length < 1 ? content.Validation.nameRequired : undefined,
-            }}
-          >
-            {(field) => (
-              <Fieldset>
-                <Label>{content.Form.nameLabel}</Label>
-                <Input
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder={String(content.Form.namePlaceholder)}
-                  invalid={field.state.meta.errors.length > 0}
-                />
-                {field.state.meta.errors.map((error) => (
-                  <Text key={error?.toString() || Math.random().toString()} className="text-red-600 text-sm mt-1">
-                    {error || 'Error'}
-                  </Text>
-                ))}
-              </Fieldset>
-            )}
-          </form.Field>
-
           {/* SEO Configuration Section */}
           <Fieldset>
             <Heading level={3}>{content.SeoSection.title}</Heading>
@@ -314,22 +286,26 @@ export function ConfigurationModal({
               <form.Field
                 name="image.rotationDegrees"
                 validators={{
-                  onChange: ({value}) =>
-                    ![0, 90, 180, 270].includes(value) ? content.Validation.rotationDegreesInvalid : undefined,
+                  onChange: ({value}) => {
+                    const num = Number(value);
+                    return isNaN(num) || num < -360 || num > 360 
+                      ? content.Validation.rotationDegreesInvalid 
+                      : undefined;
+                  },
                 }}
               >
                 {(field) => (
                   <div>
                     <Label>{content.ImageSection.rotationDegreesLabel}</Label>
-                    <Select
+                    <Input
+                      type="number"
+                      min="-360"
+                      max="360"
+                      step="1"
                       value={field.state.value.toString()}
                       onChange={(e) => field.handleChange(Number(e.target.value))}
-                    >
-                      <option value="0">0°</option>
-                      <option value="90">90°</option>
-                      <option value="180">180°</option>
-                      <option value="270">270°</option>
-                    </Select>
+                      placeholder="25"
+                    />
                     {field.state.meta.errors.map((error) => (
                       <Text key={error?.toString() || Math.random().toString()} className="text-red-600 text-sm mt-1">
                         {error || 'Error'}
