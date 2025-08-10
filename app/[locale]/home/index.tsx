@@ -1,6 +1,13 @@
 'use client'
-import {useEffect, useState, useTransition} from "react";
-import {FileListItem, PreviewTable, CategoryResultsTable, ProcessSpeedgoXlsx, submitProductCategorization, transformExcelDataToCategorizationRequest} from "@features/SpeedgoOptimizer";
+import {useState, useTransition} from "react";
+import {
+  FileListItem,
+  PreviewTable,
+  CategoryResultsTable,
+  ProcessSpeedgoXlsx,
+  submitProductCategorization,
+  transformExcelDataToCategorizationRequest
+} from "@features/SpeedgoOptimizer";
 import {useDropzone} from "react-dropzone";
 import {CloudArrowUpIcon} from "@heroicons/react/16/solid";
 import {Button} from "@components/ui/button";
@@ -12,7 +19,7 @@ import clientLogger from "@/lib/logger.client";
 
 export default function Home() {
   const [files, setFiles] = useState<File[]>([]);
-  const [previewFile, setPreviewFile] = useState<File | null>(null);
+  const [previewFileIndex, setPreviewFileIndex] = useState<number>(-1);
   const [previewRows, setPreviewRows] = useState<RowData[]>([]);
   const [processingResult, setProcessingResult] = useState<string | null>(null);
   const [categorizationResults, setCategorizationResults] = useState<CategoryResponseItem[] | null>(null);
@@ -24,7 +31,7 @@ export default function Home() {
     const currentFileCount = files.length;
     const availableSlots = Math.max(0, 3 - currentFileCount);
     const filesToAdd = acceptedFiles.slice(0, availableSlots);
-    
+
     if (acceptedFiles.length > filesToAdd.length) {
       clientLogger.warn('File limit exceeded', 'ui', {
         attempted: acceptedFiles.length,
@@ -33,7 +40,11 @@ export default function Home() {
       });
       setProcessingResult(`Maximum 3 files allowed. Only ${filesToAdd.length} files were added.`);
     }
-    
+
+    // Clear preview when adding new files to avoid stale data
+    setPreviewRows([]);
+    setPreviewFileIndex(-1);
+
     setFiles(prevFiles => [...prevFiles, ...filesToAdd]);
   };
 
@@ -45,32 +56,27 @@ export default function Home() {
     onDrop
   });
 
-  useEffect(() => {
-    if (previewFile) {
-      ProcessSpeedgoXlsx(previewFile).then(rows => setPreviewRows(rows))
-    } else {
-      setPreviewRows([])
-    }
-  }, [previewFile])
+  const onDeleteFile = (index: number) => {
+    // Clear preview data first
+    setPreviewRows([]);
+    setPreviewFileIndex(-1);
 
-  const onDeleteFile = (file: File) => {
-    setFiles(files.filter(f => f !== file));
-    if (previewFile === file) {
-      setPreviewFile(null);
-      setPreviewRows([])
-    }
+    // Then remove the file
+    setFiles(prevFiles =>
+      prevFiles.filter((_f, i) => i !== index)
+    );
   }
 
-  const onPreviewFile = (file: File) => {
-    setPreviewFile(file);
+  const onPreviewFile = (index: number) => {
+    setPreviewFileIndex(index);
     // Load preview for the selected file
-    ProcessSpeedgoXlsx(file)
+    ProcessSpeedgoXlsx(files[index]!)
       .then(rows => {
         // Show first 100 rows for preview to avoid performance issues
-        setPreviewRows(rows.slice(0, 100));
+        setPreviewRows([...rows.slice(0, 100)]);
       })
       .catch(error => {
-        clientLogger.error('Failed to preview file', error, 'file', { fileName: file.name });
+        clientLogger.error('Failed to preview file', error, 'file', {fileName: files[index]?.name});
         setPreviewRows([]);
       });
   }
@@ -84,18 +90,18 @@ export default function Home() {
     startTransition(async () => {
       try {
         setProcessingResult("Processing files...");
-        
+
         // Process all files and collect their data with 3000 record limit
         const allProcessedData: RowData[] = [];
         let totalRecordCount = 0;
         const maxRecords = 3000;
-        
+
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
           if (!file) continue; // Skip if file is undefined
-          
+
           const processedData = await ProcessSpeedgoXlsx(file);
-          
+
           // Calculate how many records we can still add
           const remainingCapacity = maxRecords - totalRecordCount;
           if (remainingCapacity <= 0) {
@@ -106,19 +112,19 @@ export default function Home() {
             });
             break;
           }
-          
+
           // Take only what fits within the limit
           const dataToAdd = processedData.slice(0, remainingCapacity);
           allProcessedData.push(...dataToAdd);
           totalRecordCount += dataToAdd.length;
-          
+
           clientLogger.info(`Processed file ${i + 1}/${files.length}`, 'categorization', {
             fileName: file.name,
             recordsInFile: processedData.length,
             recordsAdded: dataToAdd.length,
             totalRecords: totalRecordCount
           });
-          
+
           if (dataToAdd.length < processedData.length) {
             clientLogger.warn('File partially processed due to record limit', 'categorization', {
               fileName: file.name,
@@ -133,7 +139,7 @@ export default function Home() {
           setProcessingResult("No valid records found in the uploaded files.");
           return;
         }
-        
+
         if (totalRecordCount >= maxRecords) {
           setProcessingResult(`Processing ${totalRecordCount} records (maximum limit reached)...`);
         } else {
@@ -145,10 +151,10 @@ export default function Home() {
         clientLogger.debug('Transformed data for categorization API', 'categorization', {
           requestCount: categorizationRequest.length
         });
-        
+
         // Submit to categorization API
         const result = await submitProductCategorization(categorizationRequest);
-        
+
         if (result.success) {
           setProcessingResult(`Successfully processed ${result.data.length} products. Categories received!`);
           setCategorizationResults(result.data);
@@ -162,7 +168,7 @@ export default function Home() {
             error: result.error
           });
         }
-        
+
       } catch (error) {
         const errorObj = error instanceof Error ? error : new Error('Unknown error processing files');
         clientLogger.error('Error processing files in UI', errorObj, 'ui');
@@ -183,13 +189,13 @@ export default function Home() {
                 Files ready for processing ({files.length}/3 max, ~3000 records limit):
               </div>
               {files.map((file, index) => (
-                <FileListItem key={index} name={file.name} selected={file === previewFile}
-                              onClick={() => onPreviewFile(file)}
-                              onDelete={() => onDeleteFile(file)}/>))
+                <FileListItem key={index} name={file.name} selected={index === previewFileIndex}
+                              onClick={() => onPreviewFile(index)}
+                              onDelete={() => onDeleteFile(index)}/>))
               }
               {files.length < 3 && (
                 <button
-                  {...getRootProps({className: 'dropzone'})} 
+                  {...getRootProps({className: 'dropzone'})}
                   type="button"
                   className="w-full py-2 px-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 transition-colors"
                 >
@@ -223,7 +229,7 @@ export default function Home() {
             All files will be processed together (up to 3000 total records)
           </Text>
           <div>
-            <Button 
+            <Button
               onClick={handleProcessFiles}
               disabled={isPending || files.length === 0}
             >
@@ -235,15 +241,15 @@ export default function Home() {
               processingResult.includes('failed') || processingResult.includes('Error')
                 ? 'bg-red-50 border-red-200'
                 : processingResult.includes('Processing')
-                ? 'bg-yellow-50 border-yellow-200'
-                : 'bg-green-50 border-green-200'
+                  ? 'bg-yellow-50 border-yellow-200'
+                  : 'bg-green-50 border-green-200'
             }`}>
               <Text className={
                 processingResult.includes('failed') || processingResult.includes('Error')
                   ? 'text-red-600'
                   : processingResult.includes('Processing')
-                  ? 'text-yellow-800'
-                  : 'text-green-800'
+                    ? 'text-yellow-800'
+                    : 'text-green-800'
               }>
                 {processingResult}
               </Text>
@@ -251,14 +257,12 @@ export default function Home() {
           )}
         </div>
       </div>
-      {previewFile && (
+      {previewFileIndex !== -1 && previewFileIndex < files.length && files[previewFileIndex] && previewRows && previewRows.length > 0 && (
         <div className='px-4 py-8 sm:px-6 lg:px-8'>
-          <Text>Preview: {previewFile.name} (first 100 rows)</Text>
+          <Text>Preview: {files[previewFileIndex]?.name} (first 100 rows)</Text>
           <div
             className="overflow-auto whitespace-nowrap w-full h-60 relative rounded-lg border-2 border-solid border-gray-300 p-4 text-left hover:border-gray-400 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden">
-            {previewRows.length > 0 ?
-              <PreviewTable rows={previewRows}/>
-              : <Text>Loading preview...</Text>}
+            <PreviewTable rows={previewRows}/>
           </div>
         </div>
       )}
@@ -266,7 +270,7 @@ export default function Home() {
       {/* Display categorization results when available */}
       {categorizationResults && categorizationResults.length > 0 && (
         <div className='px-4 py-8 sm:px-6 lg:px-8'>
-          <CategoryResultsTable 
+          <CategoryResultsTable
             results={categorizationResults}
             onProductSelect={(product) => {
               clientLogger.info('Product selected for details', 'ui', {

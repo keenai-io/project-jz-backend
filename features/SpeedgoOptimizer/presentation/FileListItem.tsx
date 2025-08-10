@@ -14,7 +14,10 @@ export default function FileListItem({name, selected, onClick, onDelete}: {
         <DocumentPlusIcon className='h-10'/>
       </div>
       <div className="file-list-item__name">{name}</div>
-      <TrashIcon onClick={onDelete} className='h-10 ml-auto cursor-pointer'/>
+      <TrashIcon onClick={(e) => {
+        e.stopPropagation();
+        onDelete()
+      }} className='h-10 ml-auto cursor-pointer'/>
     </div>
   );
 }
