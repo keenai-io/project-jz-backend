@@ -629,7 +629,8 @@ reference:
 - url: [https://catalyst.tailwindui.com/docs ]
   why: [Tailwindcss Catalyst documents]
 
-use the base components defined
+- use the base components defined
+- **MUST USE @components/ui/link for Links with locale awareness**  
 
 ```typescript jsx
 "use client"
