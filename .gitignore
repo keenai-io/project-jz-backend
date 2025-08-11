@@ -47,3 +47,5 @@ next-env.d.ts
 /.intlayer/
 /.claude/settings.local.json
 /logs/
+credentials.json
+certificates
