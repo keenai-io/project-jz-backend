@@ -19,7 +19,9 @@ import {
   ConfigurationValidation,
   type ConfigurationForm,
   type ImageRotationDirection,
-  DEFAULT_BANNED_WORDS
+  DEFAULT_BANNED_WORDS,
+  useCreateConfiguration,
+  useUpdateConfiguration
 } from '@features/Configuration';
 
 interface ConfigurationModalProps {
@@ -29,8 +31,10 @@ interface ConfigurationModalProps {
   onClose: () => void;
   /** Initial configuration data (for editing) */
   initialData?: ConfigurationForm;
-  /** Save handler */
-  onSave: (data: ConfigurationForm) => Promise<void>;
+  /** Configuration ID if editing existing configuration */
+  configurationId?: string;
+  /** Optional save handler for legacy support */
+  onSave?: (data: ConfigurationForm) => Promise<void>;
 }
 
 /**
@@ -43,11 +47,19 @@ export function ConfigurationModal({
                                      isOpen,
                                      onClose,
                                      initialData,
+                                     configurationId,
                                      onSave
                                    }: ConfigurationModalProps): ReactElement {
   const content = useIntlayer('configuration-modal');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [newBannedWord, setNewBannedWord] = useState('');
+  
+  // TanStack Query mutations
+  const createMutation = useCreateConfiguration();
+  const updateMutation = useUpdateConfiguration();
+  
+  // Determine if we're creating or updating
+  const isEditing = !!configurationId;
+  const activeMutation = isEditing ? updateMutation : createMutation;
 
   // Default form values
   const defaultValues: ConfigurationForm = {
@@ -68,15 +80,28 @@ export function ConfigurationModal({
     defaultValues: initialData || defaultValues,
     onSubmit: async ({value}) => {
       try {
-        setIsSubmitting(true);
         // Validate with Zod before submitting
         const validatedData = ConfigurationValidation.validateConfigurationForm(value);
-        await onSave(validatedData);
+        
+        if (onSave) {
+          // Use legacy save handler if provided
+          await onSave(validatedData);
+        } else {
+          // Use TanStack Query mutations
+          if (isEditing && configurationId) {
+            await updateMutation.mutateAsync({
+              id: configurationId,
+              data: validatedData
+            });
+          } else {
+            await createMutation.mutateAsync(validatedData);
+          }
+        }
+        
         handleClose();
       } catch (error) {
         console.error('Failed to save configuration:', error);
-      } finally {
-        setIsSubmitting(false);
+        // Error handling is already done in the mutation hooks
       }
     },
     validators: {
@@ -388,10 +413,15 @@ export function ConfigurationModal({
             <Button
               type="submit"
               form="configuration-form"
-              disabled={!canSubmit || isFormSubmitting || isSubmitting}
+              disabled={!canSubmit || isFormSubmitting || activeMutation.isPending}
               color="blue"
             >
-              {(isFormSubmitting || isSubmitting) ? 'Saving...' : content.Form.saveButton}
+              {(isFormSubmitting || activeMutation.isPending) 
+                ? 'Saving...' 
+                : isEditing 
+                  ? 'Update Configuration'
+                  : content.Form.saveButton
+              }
             </Button>
           )}
         </form.Subscribe>

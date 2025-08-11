@@ -1,12 +1,12 @@
 'use client'
-import {useState, useTransition} from "react";
+import {useState} from "react";
 import {
   FileListItem,
   PreviewTable,
   CategoryResultsTable,
   ProcessSpeedgoXlsx,
-  submitProductCategorization,
-  transformExcelDataToCategorizationRequest
+  transformExcelDataToCategorizationRequest,
+  useProductCategorization
 } from "@features/SpeedgoOptimizer";
 import {useDropzone} from "react-dropzone";
 import {CloudArrowUpIcon} from "@heroicons/react/16/solid";
@@ -24,9 +24,11 @@ export default function Home() {
   const [previewRows, setPreviewRows] = useState<RowData[]>([]);
   const [processingResult, setProcessingResult] = useState<string | null>(null);
   const [categorizationResults, setCategorizationResults] = useState<CategoryResponseItem[] | null>(null);
-  const [isPending, startTransition] = useTransition();
   const { locale } = useLocale();
-  const content = useIntlayer<'home'>("home")
+  const content = useIntlayer<'home'>("home");
+  
+  // Use TanStack Query mutation for product categorization
+  const categorizationMutation = useProductCategorization();
 
   const onDrop = (acceptedFiles: File[]) => {
     // Limit to maximum 3 files total
@@ -89,95 +91,93 @@ export default function Home() {
       return;
     }
 
-    startTransition(async () => {
-      try {
-        setProcessingResult(content.ProcessSection.processingFiles.value);
+    try {
+      setProcessingResult(content.ProcessSection.processingFiles.value);
 
-        // Process all files and collect their data with 3000 record limit
-        const allProcessedData: RowData[] = [];
-        let totalRecordCount = 0;
-        const maxRecords = 3000;
+      // Process all files and collect their data with 3000 record limit
+      const allProcessedData: RowData[] = [];
+      let totalRecordCount = 0;
+      const maxRecords = 3000;
 
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i];
-          if (!file) continue; // Skip if file is undefined
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file) continue; // Skip if file is undefined
 
-          const processedData = await ProcessSpeedgoXlsx(file);
+        const processedData = await ProcessSpeedgoXlsx(file);
 
-          // Calculate how many records we can still add
-          const remainingCapacity = maxRecords - totalRecordCount;
-          if (remainingCapacity <= 0) {
-            clientLogger.warn('Record limit reached, skipping remaining files', 'categorization', {
-              skippedFiles: files.length - i,
-              totalRecords: totalRecordCount,
-              maxRecords
-            });
-            break;
-          }
-
-          // Take only what fits within the limit
-          const dataToAdd = processedData.slice(0, remainingCapacity);
-          allProcessedData.push(...dataToAdd);
-          totalRecordCount += dataToAdd.length;
-
-          clientLogger.info(`Processed file ${i + 1}/${files.length}`, 'categorization', {
-            fileName: file.name,
-            recordsInFile: processedData.length,
-            recordsAdded: dataToAdd.length,
-            totalRecords: totalRecordCount
+        // Calculate how many records we can still add
+        const remainingCapacity = maxRecords - totalRecordCount;
+        if (remainingCapacity <= 0) {
+          clientLogger.warn('Record limit reached, skipping remaining files', 'categorization', {
+            skippedFiles: files.length - i,
+            totalRecords: totalRecordCount,
+            maxRecords
           });
-
-          if (dataToAdd.length < processedData.length) {
-            clientLogger.warn('File partially processed due to record limit', 'categorization', {
-              fileName: file.name,
-              totalRecordsInFile: processedData.length,
-              recordsProcessed: dataToAdd.length,
-              recordsSkipped: processedData.length - dataToAdd.length
-            });
-          }
+          break;
         }
 
-        if (allProcessedData.length === 0) {
-          setProcessingResult(content.ProcessSection.noValidRecords.value);
-          return;
-        }
+        // Take only what fits within the limit
+        const dataToAdd = processedData.slice(0, remainingCapacity);
+        allProcessedData.push(...dataToAdd);
+        totalRecordCount += dataToAdd.length;
 
-        if (totalRecordCount >= maxRecords) {
-          setProcessingResult(content.ProcessSection.processingRecordsLimit.value.replace('{count}', totalRecordCount.toString()));
-        } else {
-          setProcessingResult(content.ProcessSection.processingRecords.value.replace('{count}', totalRecordCount.toString()).replace('{fileCount}', files.length.toString()));
-        }
-
-        // Transform the data for the categorization API
-        const categorizationRequest = transformExcelDataToCategorizationRequest(allProcessedData, locale as Locales);
-        clientLogger.debug('Transformed data for categorization API', 'categorization', {
-          requestCount: categorizationRequest.length
+        clientLogger.info(`Processed file ${i + 1}/${files.length}`, 'categorization', {
+          fileName: file.name,
+          recordsInFile: processedData.length,
+          recordsAdded: dataToAdd.length,
+          totalRecords: totalRecordCount
         });
 
-        // Submit to categorization API
-        const result = await submitProductCategorization(categorizationRequest);
-
-        if (result.success) {
-          setProcessingResult(content.ProcessSection.successProcessed.value.replace('{count}', result.data.length.toString()));
-          setCategorizationResults(result.data);
-          clientLogger.info('Categorization completed successfully', 'ui', {
-            processedProducts: result.data.length
-          });
-        } else {
-          setProcessingResult(content.ProcessSection.processingFailed.value.replace('{error}', result.error || ''));
-          setCategorizationResults(null);
-          clientLogger.warn('Categorization processing failed', 'ui', {
-            error: result.error
+        if (dataToAdd.length < processedData.length) {
+          clientLogger.warn('File partially processed due to record limit', 'categorization', {
+            fileName: file.name,
+            totalRecordsInFile: processedData.length,
+            recordsProcessed: dataToAdd.length,
+            recordsSkipped: processedData.length - dataToAdd.length
           });
         }
-
-      } catch (error) {
-        const errorObj = error instanceof Error ? error : new Error('Unknown error processing files');
-        clientLogger.error('Error processing files in UI', errorObj, 'ui');
-        setProcessingResult(content.ProcessSection.errorProcessing.value.replace('{error}', errorObj.message));
-        setCategorizationResults(null);
       }
-    });
+
+      if (allProcessedData.length === 0) {
+        setProcessingResult(content.ProcessSection.noValidRecords.value);
+        return;
+      }
+
+      if (totalRecordCount >= maxRecords) {
+        setProcessingResult(content.ProcessSection.processingRecordsLimit.value.replace('{count}', totalRecordCount.toString()));
+      } else {
+        setProcessingResult(content.ProcessSection.processingRecords.value.replace('{count}', totalRecordCount.toString()).replace('{fileCount}', files.length.toString()));
+      }
+
+      // Transform the data for the categorization API
+      const categorizationRequest = transformExcelDataToCategorizationRequest(allProcessedData, locale as Locales);
+      clientLogger.debug('Transformed data for categorization API', 'categorization', {
+        requestCount: categorizationRequest.length
+      });
+
+      // Submit to categorization API using TanStack Query mutation
+      const result = await categorizationMutation.mutateAsync(categorizationRequest);
+
+      if (result.success) {
+        setProcessingResult(content.ProcessSection.successProcessed.value.replace('{count}', result.data.length.toString()));
+        setCategorizationResults(result.data);
+        clientLogger.info('Categorization completed successfully', 'ui', {
+          processedProducts: result.data.length
+        });
+      } else {
+        setProcessingResult(content.ProcessSection.processingFailed.value.replace('{error}', result.error || ''));
+        setCategorizationResults(null);
+        clientLogger.warn('Categorization processing failed', 'ui', {
+          error: result.error
+        });
+      }
+
+    } catch (error) {
+      const errorObj = error instanceof Error ? error : new Error('Unknown error processing files');
+      clientLogger.error('Error processing files in UI', errorObj, 'ui');
+      setProcessingResult(content.ProcessSection.errorProcessing.value.replace('{error}', errorObj.message));
+      setCategorizationResults(null);
+    }
   }
 
   return (
@@ -233,9 +233,9 @@ export default function Home() {
           <div>
             <Button
               onClick={handleProcessFiles}
-              disabled={isPending || files.length === 0}
+              disabled={categorizationMutation.isPending || files.length === 0}
             >
-              {isPending ? content.ProcessSection.processingButton : content.ProcessSection.processFileCountButton.value.replace('{count}', files.length.toString())}
+              {categorizationMutation.isPending ? content.ProcessSection.processingButton : content.ProcessSection.processFileCountButton.value.replace('{count}', files.length.toString())}
             </Button>
           </div>
           {processingResult && (

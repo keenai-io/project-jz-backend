@@ -1,6 +1,8 @@
 'use client'
 
-import { ReactElement, ReactNode, useState, useCallback, MouseEvent } from 'react';
+import { ReactElement, ReactNode, useState, useCallback, MouseEvent, useTransition } from 'react';
+import { QueryProvider } from '@/app/components/providers/QueryProvider';
+import { QueryErrorBoundary } from '@/app/components/error-boundaries/QueryErrorBoundary';
 import { StackedLayout } from "@components/ui/stacked-layout";
 import { Navbar, NavbarDivider, NavbarItem, NavbarSection, NavbarSpacer } from "@components/ui/navbar";
 import { Avatar } from '@components/ui/avatar'
@@ -28,6 +30,8 @@ import { LanguageSwitcher } from '@components/common/LanguageSwitcher';
 import { ConfigurationModal } from '@features/Configuration';
 import type { ConfigurationForm } from '@features/Configuration';
 import {useIntlayer, useLocale} from "next-intlayer";
+import { signOutAction } from '@/app/actions/auth';
+import { useSession } from 'next-auth/react';
 
 interface ClientLayoutProps {
   children: ReactNode;
@@ -38,6 +42,8 @@ interface ClientLayoutProps {
  */
 export function ClientLayout({ children }: ClientLayoutProps): ReactElement {
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+  const [isSigningOut, startSignOutTransition] = useTransition();
+  const { data: session } = useSession();
   const { locale } = useLocale();
   const content = useIntlayer<'layout'>("layout", locale);
   const handleConfigurationClick = useCallback((e: MouseEvent): void => {
@@ -59,6 +65,18 @@ export function ClientLayout({ children }: ClientLayoutProps): ReactElement {
       console.error('Failed to save configuration:', error);
       throw error; // Re-throw so the modal can handle the error
     }
+  }, []);
+
+  const handleSignOut = useCallback((e: MouseEvent): void => {
+    e.preventDefault();
+    startSignOutTransition(async () => {
+      try {
+        await signOutAction();
+      } catch (error) {
+        console.error('Sign out failed:', error);
+        // You could show a toast notification here
+      }
+    });
   }, []);
 
   const getNavItems = () => [
@@ -102,8 +120,9 @@ export function ClientLayout({ children }: ClientLayoutProps): ReactElement {
   }
 
   return (
-    <>
-      <StackedLayout
+      <QueryProvider>
+        <QueryErrorBoundary>
+        <StackedLayout
         key={locale}
         navbar={
           <Navbar>
@@ -134,9 +153,13 @@ export function ClientLayout({ children }: ClientLayoutProps): ReactElement {
               <LanguageSwitcher />
               <Dropdown>
                 <DropdownButton as={NavbarItem}>
-                  <Avatar src="/profile-photo.jpg" square />
+                  <Avatar 
+                    src={session?.user?.image || "/profile-photo.jpg"} 
+                    initials={session?.user?.name?.charAt(0) || 'U'}
+                    square 
+                  />
                 </DropdownButton>
-                <DropdownMenu className="min-w-64" anchor="bottom end">
+                <DropdownMenu className="w-72" anchor="bottom end">
                   <DropdownItem href="/my-profile">
                     <UserIcon />
                     <DropdownLabel>{content.userMenu.myProfile}</DropdownLabel>
@@ -155,9 +178,11 @@ export function ClientLayout({ children }: ClientLayoutProps): ReactElement {
                     <DropdownLabel>{content.userMenu.shareFeedback}</DropdownLabel>
                   </DropdownItem>
                   <DropdownDivider />
-                  <DropdownItem href="/logout">
+                  <DropdownItem onClick={handleSignOut} disabled={isSigningOut}>
                     <ArrowRightStartOnRectangleIcon />
-                    <DropdownLabel>{content.userMenu.signOut}</DropdownLabel>
+                    <DropdownLabel>
+                      {isSigningOut ? content.userMenu.signingOut : content.userMenu.signOut}
+                    </DropdownLabel>
                   </DropdownItem>
                 </DropdownMenu>
               </Dropdown>
@@ -169,7 +194,11 @@ export function ClientLayout({ children }: ClientLayoutProps): ReactElement {
             <SidebarHeader>
               <Dropdown>
                 <DropdownButton as={SidebarItem} className="lg:mb-2.5">
-                  <Avatar src="/icon.png" />
+                  <Avatar 
+                    src={session?.user?.image || "/icon.png"} 
+                    initials={session?.user?.name?.charAt(0) || 'U'}
+                  />
+                  <Text className="truncate">{session?.user?.name || 'User'}</Text>
                   <ChevronDownIcon />
                 </DropdownButton>
                 <TeamDropdownMenu />
@@ -202,6 +231,7 @@ export function ClientLayout({ children }: ClientLayoutProps): ReactElement {
           onSave={handleConfigSave}
         />
       )}
-    </>
+        </QueryErrorBoundary>
+      </QueryProvider>
   );
 }

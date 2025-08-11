@@ -4,7 +4,7 @@ import {withIntlayer} from "next-intlayer/server";
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [{
-      hostname: 'images.unsplash.com'
+      hostname: 'lh3.googleusercontent.com'
     }],
   }
 };

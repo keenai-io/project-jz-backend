@@ -7,6 +7,7 @@ import { Text } from '@components/ui/text';
 import { AuthLayout } from '@components/ui/auth-layout';
 import { Link } from '@components/ui/link';
 import { authenticate } from './actions';
+import { useSearchParams } from 'next/navigation';
 import type { ReactElement } from 'react';
 
 /**
@@ -17,6 +18,12 @@ import type { ReactElement } from 'react';
  */
 export default function SignInPage(): ReactElement {
   const content = useIntlayer('signin');
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl');
+
+  const handleAuthenticate = async () => {
+    await authenticate(callbackUrl || undefined);
+  };
 
   return (
     <AuthLayout>
@@ -27,7 +34,7 @@ export default function SignInPage(): ReactElement {
         </div>
 
         <div className="mt-8 space-y-4">
-          <form action={authenticate}>
+          <form action={handleAuthenticate}>
             <Button
               type="submit"
               className="w-full"

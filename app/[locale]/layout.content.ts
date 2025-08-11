@@ -38,6 +38,10 @@ const layoutContent = {
         en: "Sign out",
         ko: "로그아웃",
       }),
+      signingOut: t({
+        en: "Signing out...",
+        ko: "로그아웃 중...",
+      }),
     },
     teamDropdown: {
       settings: t({

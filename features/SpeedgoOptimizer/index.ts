@@ -6,3 +6,6 @@ export {submitProductCategorization} from "@features/SpeedgoOptimizer/applicatio
 export {transformExcelDataToCategorizationRequest} from "@features/SpeedgoOptimizer/application/transformExcelData"
 export {exportCategorizationResultsToExcel, isExportSupported, getEstimatedExportSize, formatFileSize} from "@features/SpeedgoOptimizer/application/exportCategorizationResults"
 
+// Hooks
+export {useProductCategorization, usePrefetchCategorization} from "@features/SpeedgoOptimizer/hooks/useProductCategorization"
+

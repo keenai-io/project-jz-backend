@@ -17,3 +17,13 @@ export {
 // Presentation exports
 export { ConfigurationModal } from './presentation/ConfigurationModal';
 export { default as configurationModalContent } from './presentation/ConfigurationModal.content';
+
+// Hooks exports
+export {
+  useConfigurations,
+  useConfiguration,
+  useCreateConfiguration,
+  useUpdateConfiguration,
+  useDeleteConfiguration,
+  usePrefetchConfigurations,
+} from './hooks/useConfiguration';

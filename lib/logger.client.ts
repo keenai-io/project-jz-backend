@@ -20,7 +20,7 @@ const clientLogEnv = clientLogEnvSchema.parse({
 /**
  * Type-safe logging interface with branded types for different log contexts
  */
-export type LogContext = 'api' | 'auth' | 'db' | 'file' | 'categorization' | 'ui' | 'system';
+export type LogContext = 'api' | 'auth' | 'db' | 'file' | 'categorization' | 'ui' | 'system' | 'query' | 'configuration';
 
 /**
  * Enhanced client logger formatting inspired by winston-dev-console
