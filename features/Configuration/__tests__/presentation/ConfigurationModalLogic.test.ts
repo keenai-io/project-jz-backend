@@ -8,7 +8,7 @@ import {
   ConfigurationFormSchema,
   DEFAULT_BANNED_WORDS,
   type ConfigurationForm 
-} from '../../domain/schemas/ConfigurationSchemas';
+} from '@features/Configuration/domain/schemas/ConfigurationSchemas';
 
 /**
  * Test suite for ConfigurationModal business logic.

@@ -11,7 +11,7 @@ import {
   SeoConfigurationSchema,
   ImageConfigurationSchema,
   DEFAULT_BANNED_WORDS,
-} from '../ConfigurationSchemas';
+} from '@features/Configuration/domain/schemas/ConfigurationSchemas';
 
 /**
  * Test suite for Configuration schemas.
