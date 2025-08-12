@@ -1178,6 +1178,76 @@ For complete development commands and workflow, see [README.md - Development Com
 
 For complete Intlayer setup, content file patterns, and troubleshooting, see [README.md - Internationalization](./README.md#-internationalization-intlayer).
 
+### Intlayer TypeScript Integration (CRITICAL)
+
+**MUST follow these patterns for proper type safety:**
+
+#### Creating New Content Files
+
+When creating new content files, follow this exact pattern:
+
+```typescript
+// features/MyFeature/presentation/MyComponent.content.ts
+import { type Dictionary, t } from "intlayer";
+
+const myComponentContent = {
+  key: "my-component", // Must be unique across app
+  content: {
+    title: t({
+      en: "My Title",
+      ko: "내 제목",
+    }),
+    description: t({
+      en: "My description",
+      ko: "내 설명",
+    }),
+  },
+} satisfies Dictionary;
+
+export default myComponentContent;
+```
+
+#### Using Content in Components
+
+**MUST use explicit type parameters:**
+
+```typescript
+// ✅ CORRECT: With explicit type parameter
+const content = useIntlayer<'my-component'>('my-component');
+
+// ❌ WRONG: Without type parameter (causes type errors)
+const content = useIntlayer('my-component');
+```
+
+#### Building Types After Changes
+
+**CRITICAL**: After creating or modifying content files, run:
+
+```bash
+npm run intlayer:build
+```
+
+This generates TypeScript types and resolves type errors. The `dev` script includes this automatically, but manual builds are needed when:
+- Adding new content files
+- Changing content keys
+- Modifying content structure
+
+#### Type Error Resolution
+
+If you encounter `Type '"my-key"' does not satisfy the constraint 'DictionaryKeys'`:
+
+1. **Check content file structure** - Ensure `key` and `content` are properly defined
+2. **Run intlayer build** - `npm run intlayer:build`  
+3. **Add explicit type parameter** - `useIntlayer<'my-key'>('my-key')`
+4. **Verify unique keys** - Content keys must be unique across the application
+
+#### Content File Organization
+
+- **Co-locate content files** with components: `MyComponent.content.ts` next to `MyComponent.tsx`
+- **Use descriptive keys** - `file-upload-area` not `upload1`
+- **One content file per component** - Avoid large shared content files
+- **Namespace by feature** - Include feature context in key names
+
 ### Key Development Patterns
 
 **MUST use TanStack Form with proper data initialization**:
@@ -1573,4 +1643,4 @@ describe('MyFormComponent', () => {
 
 *This guide is optimized for Next.js 15 with React 19. Keep it updated as frameworks evolve.*
 *Focus on type safety, performance, and maintainability in all development decisions.*
-*Last updated: January 2025*
+*Last updated: August 2025*

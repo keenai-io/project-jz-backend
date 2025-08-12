@@ -51,7 +51,7 @@ export function ConfigurationModal({
   // Default form values
   const defaultValues: ConfigurationForm = {
     seo: {
-      temperature: 50,
+      temperature: 5,
       useImages: true,
       bannedWords: [...DEFAULT_BANNED_WORDS]
     },
@@ -226,7 +226,7 @@ export function ConfigurationModal({
                 name="seo.temperature"
                 validators={{
                   onChange: ({value}) =>
-                    value < 0 || value > 100 ? content.Validation.temperatureRange : undefined,
+                    value < 0 || value > 10 ? content.Validation.temperatureRange : undefined,
                 }}
               >
                 {(field) => (
@@ -237,7 +237,7 @@ export function ConfigurationModal({
                     </Text>
                     <Slider
                       min={0}
-                      max={100}
+                      max={10}
                       step={1}
                       value={field.state.value}
                       onChange={field.handleChange}

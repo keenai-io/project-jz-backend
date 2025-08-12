@@ -6,7 +6,6 @@ import { Button } from '@components/ui/button';
 import { Heading } from '@components/ui/heading';
 import { Text } from '@components/ui/text';
 import { AuthLayout } from '@components/ui/auth-layout';
-import { Link } from '@components/ui/link';
 import { authenticate } from './actions';
 import { useSearchParams } from 'next/navigation';
 import type { ReactElement } from 'react';

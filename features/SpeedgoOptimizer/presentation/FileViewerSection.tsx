@@ -25,7 +25,7 @@ export function FileViewerSection({
   files,
   previewRows
 }: FileViewerSectionProps): ReactElement {
-  const content = useIntlayer('home');
+  const content = useIntlayer<'file-viewer-section'>('file-viewer-section');
 
   const hasValidPreview = previewFileIndex !== -1 && 
     previewFileIndex < files.length && 
@@ -36,13 +36,13 @@ export function FileViewerSection({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
       <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">
-        {content.FilePreview.title}
+        {content.title}
       </h2>
       <div className="bg-white rounded-2xl sm:rounded-3xl border-2 border-gray-200 shadow-sm">
         {hasValidPreview ? (
           <div className="p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              {content.ProcessSection.previewTitle.value
+              {content.previewTitle.value
                 .replace('{fileName}', files[previewFileIndex]?.name || '')}
             </h3>
             <div className="overflow-auto max-h-80 border border-gray-200 rounded-xl">
@@ -52,7 +52,7 @@ export function FileViewerSection({
         ) : (
           <div className="p-20 text-center">
             <div className="text-gray-400 text-lg">
-              {content.FilePreview.emptyMessage}
+              {content.emptyMessage}
             </div>
           </div>
         )}

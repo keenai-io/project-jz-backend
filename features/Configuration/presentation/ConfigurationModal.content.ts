@@ -33,12 +33,12 @@ const configurationModalContent = {
         ko: "검색 엔진 최적화 설정을 구성하세요",
       }),
       temperatureLabel: t({
-        en: "Creativity Level",
-        ko: "창의성 수준",
+        en: "Temperature",
+        ko: "온도",
       }),
       temperatureDescription: t({
-        en: "Controls the creativity of generated content (0 = Conservative, 100 = Creative)",
-        ko: "생성된 콘텐츠의 창의성을 제어합니다 (0 = 보수적, 100 = 창의적)",
+        en: "Controls the randomness of generated content (0 = Deterministic, 10 = Creative)",
+        ko: "생성된 콘텐츠의 무작위성을 제어합니다 (0 = 결정적, 10 = 창의적)",
       }),
       useImagesLabel: t({
         en: "Use Images",
@@ -129,8 +129,8 @@ const configurationModalContent = {
     },
     Validation: {
       temperatureRange: t({
-        en: "Temperature must be between 0 and 100",
-        ko: "온도는 0에서 100 사이여야 합니다",
+        en: "Temperature must be between 0 and 10",
+        ko: "온도는 0에서 10 사이여야 합니다",
       }),
       rotationDegreesInvalid: t({
         en: "Rotation degrees must be between -360 and 360",

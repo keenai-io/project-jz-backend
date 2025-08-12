@@ -31,7 +31,7 @@ export function UploadedFilesList({
   onDeleteFile,
   onAddMoreFiles
 }: UploadedFilesListProps): ReactElement {
-  const content = useIntlayer('home');
+  const content = useIntlayer<'uploaded-files-list'>('uploaded-files-list');
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
@@ -49,10 +49,10 @@ export function UploadedFilesList({
           <CloudArrowUpIcon className="w-8 h-8 text-green-600" />
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          {content.ProcessSection.filesReadyTitle}
+          {content.filesReadyTitle}
         </h3>
         <p className="text-sm text-gray-600">
-          {content.ProcessSection.filesReady.value
+          {content.filesReady.value
             .replace('{current}', files.length.toString())
             .replace('{max}', '3')}
         </p>
@@ -90,8 +90,8 @@ export function UploadedFilesList({
               </p>
               <p className="text-xs text-gray-500">
                 {index === previewFileIndex 
-                  ? content.ProcessSection.currentlyPreviewing 
-                  : content.ProcessSection.clickToPreview
+                  ? content.currentlyPreviewing 
+                  : content.clickToPreview
                 }
               </p>
             </div>
@@ -121,7 +121,7 @@ export function UploadedFilesList({
             <div className="flex items-center justify-center space-x-2">
               <CloudArrowUpIcon className="w-5 h-5" />
               <span>
-                {content.ProcessSection.addMoreFiles.value
+                {content.addMoreFiles.value
                   .replace('{remaining}', (3 - files.length).toString())}
               </span>
             </div>

@@ -11,8 +11,8 @@ export type ConfigurationId = z.infer<typeof ConfigurationIdSchema>;
  * Defines the structure for SEO-related settings
  */
 export const SeoConfigurationSchema = z.object({
-  /** Temperature/creativity setting from 0 to 100 */
-  temperature: z.number().min(0).max(100).default(50),
+  /** Temperature setting from 0 to 10 (whole numbers only) */
+  temperature: z.number().int().min(0).max(10).default(5),
   
   /** Whether to use images in SEO optimization */
   useImages: z.boolean().default(true),

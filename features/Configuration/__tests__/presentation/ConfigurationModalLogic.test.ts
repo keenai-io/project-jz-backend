@@ -23,7 +23,7 @@ describe('ConfigurationModal Business Logic', () => {
   it('should validate valid configuration form data', () => {
     const validConfig: ConfigurationForm = {
       seo: {
-        temperature: 75,
+        temperature: 7,
         useImages: true,
         bannedWords: ['word1', 'word2'],
       },
@@ -40,7 +40,7 @@ describe('ConfigurationModal Business Logic', () => {
     expect(result.success).toBe(true);
     
     if (result.success) {
-      expect(result.data.seo.temperature).toBe(75);
+      expect(result.data.seo.temperature).toBe(7);
       expect(result.data.image.rotationDegrees).toBe(90);
     }
   });
@@ -51,7 +51,7 @@ describe('ConfigurationModal Business Logic', () => {
   it('should reject configuration with invalid temperature', () => {
     const invalidConfig: ConfigurationForm = {
       seo: {
-        temperature: 150, // Invalid: > 100
+        temperature: 15, // Invalid: > 10
         useImages: true,
         bannedWords: [...DEFAULT_BANNED_WORDS],
       },
@@ -145,7 +145,7 @@ describe('ConfigurationModal Business Logic', () => {
   it('should accept configuration with maximum valid values', () => {
     const maximalConfig: ConfigurationForm = {
       seo: {
-        temperature: 100,
+        temperature: 10,
         useImages: true,
         bannedWords: ['word1', 'word2', 'word3', 'word4', 'word5'],
       },
@@ -162,7 +162,7 @@ describe('ConfigurationModal Business Logic', () => {
     expect(result.success).toBe(true);
     
     if (result.success) {
-      expect(result.data.seo.temperature).toBe(100);
+      expect(result.data.seo.temperature).toBe(10);
       expect(result.data.image.rotationDegrees).toBe(270);
       expect(result.data.image.rotationDirection).toBe('counter-clockwise');
     }

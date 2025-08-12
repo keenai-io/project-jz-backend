@@ -19,17 +19,17 @@ export function useFileProcessing() {
   const [processingResult, setProcessingResult] = useState<string | null>(null);
   const [categorizationResults, setCategorizationResults] = useState<CategoryResponseItem[] | null>(null);
   const { locale } = useLocale();
-  const content = useIntlayer('home');
+  const content = useIntlayer<'use-file-processing'>('use-file-processing');
   const categorizationMutation = useProductCategorization();
 
   const handleProcessFiles = useCallback(async (files: File[]): Promise<void> => {
     if (files.length === 0) {
-      setProcessingResult(content.ProcessSection.noFilesToProcess.value);
+      setProcessingResult(content.noFilesToProcess.value);
       return;
     }
 
     try {
-      setProcessingResult(content.ProcessSection.processingFiles.value);
+      setProcessingResult(content.processingFiles.value);
 
       // Process all files and collect their data with 3000 record limit
       const allProcessedData: RowData[] = [];
@@ -76,18 +76,18 @@ export function useFileProcessing() {
       }
 
       if (allProcessedData.length === 0) {
-        setProcessingResult(content.ProcessSection.noValidRecords.value);
+        setProcessingResult(content.noValidRecords.value);
         return;
       }
 
       if (totalRecordCount >= maxRecords) {
         setProcessingResult(
-          content.ProcessSection.processingRecordsLimit.value
+          content.processingRecordsLimit.value
             .replace('{count}', totalRecordCount.toString())
         );
       } else {
         setProcessingResult(
-          content.ProcessSection.processingRecords.value
+          content.processingRecords.value
             .replace('{count}', totalRecordCount.toString())
             .replace('{fileCount}', files.length.toString())
         );
@@ -108,7 +108,7 @@ export function useFileProcessing() {
 
       if (result.success) {
         setProcessingResult(
-          content.ProcessSection.successProcessed.value
+          content.successProcessed.value
             .replace('{count}', result.data.length.toString())
         );
         setCategorizationResults(result.data);
@@ -117,7 +117,7 @@ export function useFileProcessing() {
         });
       } else {
         setProcessingResult(
-          content.ProcessSection.processingFailed.value
+          content.processingFailed.value
             .replace('{error}', result.error || '')
         );
         setCategorizationResults(null);
@@ -130,7 +130,7 @@ export function useFileProcessing() {
       const errorObj = error instanceof Error ? error : new Error('Unknown error processing files');
       clientLogger.error('Error processing files in UI', errorObj, 'ui');
       setProcessingResult(
-        content.ProcessSection.errorProcessing.value
+        content.errorProcessing.value
           .replace('{error}', errorObj.message)
       );
       setCategorizationResults(null);

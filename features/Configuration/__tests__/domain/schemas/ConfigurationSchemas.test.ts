@@ -22,7 +22,7 @@ describe('Configuration Schemas', () => {
   describe('SeoConfigurationSchema', () => {
     it('should validate correct SEO configuration', () => {
       const validSeoConfig = {
-        temperature: 75,
+        temperature: 7,
         useImages: true,
         bannedWords: ['test', 'word'],
       };
@@ -34,7 +34,7 @@ describe('Configuration Schemas', () => {
     it('should use default values for missing fields', () => {
       const result = SeoConfigurationSchema.parse({});
       
-      expect(result.temperature).toBe(50);
+      expect(result.temperature).toBe(5);
       expect(result.useImages).toBe(true);
       expect(result.bannedWords).toEqual([]);
     });
@@ -45,8 +45,12 @@ describe('Configuration Schemas', () => {
       })).toThrow();
 
       expect(() => SeoConfigurationSchema.parse({
-        temperature: 101
+        temperature: 11
       })).toThrow();
+
+      expect(() => SeoConfigurationSchema.parse({
+        temperature: 5.5
+      })).toThrow(); // Should reject non-integers
     });
   });
 
@@ -97,7 +101,7 @@ describe('Configuration Schemas', () => {
       const validConfig = {
         name: 'Test Configuration',
         seo: {
-          temperature: 60,
+          temperature: 6,
           useImages: false,
           bannedWords: ['banned'],
         },
@@ -133,7 +137,7 @@ describe('Configuration Schemas', () => {
     it('should exclude auto-generated fields', () => {
       const formData = {
         seo: {
-          temperature: 80,
+          temperature: 8,
           useImages: true,
           bannedWords: ['form', 'test'],
         },
@@ -158,7 +162,7 @@ describe('Configuration Schemas', () => {
     it('should validate configuration form data', () => {
       const formData = {
         seo: {
-          temperature: 70,
+          temperature: 7,
           useImages: true,
           bannedWords: ['validation'],
         },
@@ -177,7 +181,7 @@ describe('Configuration Schemas', () => {
     it('should throw on invalid configuration form data', () => {
       const invalidFormData = {
         seo: {
-          temperature: 150, // Invalid temperature
+          temperature: 15, // Invalid temperature (> 10)
           useImages: true,
           bannedWords: [],
         },

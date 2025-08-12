@@ -29,8 +29,8 @@ vi.mock('next-intlayer', async () => {
       SeoSection: {
         title: 'SEO Settings',
         description: 'Configure SEO settings',
-        temperatureLabel: 'Creativity Level',
-        temperatureDescription: 'Controls creativity',
+        temperatureLabel: 'Temperature',
+        temperatureDescription: 'Controls randomness',
         useImagesLabel: 'Use Images',
         useImagesDescription: 'Include images',
         bannedWordsLabel: 'Banned Words',
@@ -55,7 +55,7 @@ vi.mock('next-intlayer', async () => {
       },
       Validation: {
         nameRequired: 'Name is required',
-        temperatureRange: 'Temperature must be 0-100',
+        temperatureRange: 'Temperature must be 0-10',
         rotationDegreesInvalid: 'Invalid rotation degrees',
       },
     }),
@@ -130,9 +130,9 @@ describe('ConfigurationModal', () => {
     const temperatureSlider = screen.getByRole('slider');
     
     // Change slider value
-    fireEvent.change(temperatureSlider, { target: { value: '75' } });
+    fireEvent.change(temperatureSlider, { target: { value: '7' } });
 
-    expect(temperatureSlider).toHaveValue('75');
+    expect(temperatureSlider).toHaveValue('7');
   });
 
   /**
@@ -352,7 +352,7 @@ describe('ConfigurationModal', () => {
     const initialData: ConfigurationForm = {
       name: 'Custom Configuration',
       seo: {
-        temperature: 75,
+        temperature: 7,
         useImages: false,
         bannedWords: ['custom', 'word'],
       },
@@ -368,7 +368,7 @@ describe('ConfigurationModal', () => {
     renderModal({ initialData });
 
     expect(screen.getByDisplayValue('Custom Configuration')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('75')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('7')).toBeInTheDocument();
     expect(screen.getByLabelText('Use Images')).not.toBeChecked();
     expect(screen.getByText('custom')).toBeInTheDocument();
     expect(screen.getByText('word')).toBeInTheDocument();

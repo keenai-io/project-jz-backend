@@ -18,7 +18,7 @@ interface FileUploadAreaProps {
  * Accepts only Excel (.xlsx) files for Speedgo processing.
  */
 export function FileUploadArea({ onDrop }: FileUploadAreaProps): ReactElement {
-  const content = useIntlayer('home');
+  const content = useIntlayer<'file-upload-area'>('file-upload-area');
 
   const { getRootProps, getInputProps } = useDropzone({
     accept: {
@@ -41,17 +41,17 @@ export function FileUploadArea({ onDrop }: FileUploadAreaProps): ReactElement {
           </div>
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {content.FilePicker.dragDropTitle}
+              {content.dragDropTitle}
             </h3>
             <p className="text-gray-600">
-              {content.FilePicker.filePickerMessage}
+              {content.filePickerMessage}
             </p>
           </div>
           <Button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 cursor-pointer">
-            {content.FilePicker.uploadButtonText}
+            {content.uploadButtonText}
           </Button>
           <p className="text-sm text-gray-500">
-            {content.FilePicker.fileTypeNote}
+            {content.fileTypeNote}
           </p>
         </div>
       </div>

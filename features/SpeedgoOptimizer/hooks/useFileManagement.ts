@@ -4,7 +4,6 @@ import { useState, useCallback } from 'react';
 import { ProcessSpeedgoXlsx } from '@features/SpeedgoOptimizer';
 import { RowData } from '@tanstack/table-core';
 import clientLogger from '@/lib/logger.client';
-import { useIntlayer } from 'next-intlayer';
 
 /**
  * Custom hook for managing file uploads, preview, and deletion
@@ -13,7 +12,6 @@ export function useFileManagement() {
   const [files, setFiles] = useState<File[]>([]);
   const [previewFileIndex, setPreviewFileIndex] = useState<number>(-1);
   const [previewRows, setPreviewRows] = useState<RowData[]>([]);
-  const content = useIntlayer('home');
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     // Limit to maximum 3 files total
