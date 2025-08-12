@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useIntlayer } from 'next-intlayer';
 import { Button } from '@components/ui/button';
 import { Heading } from '@components/ui/heading';
@@ -11,12 +12,9 @@ import { useSearchParams } from 'next/navigation';
 import type { ReactElement } from 'react';
 
 /**
- * Sign in page component
- * 
- * Provides authentication options for users to sign in to the application.
- * Currently supports Google OAuth provider through NextAuth.
+ * Sign in form component that uses useSearchParams
  */
-export default function SignInPage(): ReactElement {
+function SignInForm(): ReactElement {
   const content = useIntlayer('signin');
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl');
@@ -26,31 +24,52 @@ export default function SignInPage(): ReactElement {
   };
 
   return (
-    <AuthLayout>
-      <div className="w-full max-w-sm">
-        <div className="text-center">
-          <Heading level={1}>{content.title.value}</Heading>
-          <Text className="mt-2 text-zinc-500">{content.subtitle.value}</Text>
-        </div>
-
-        <div className="mt-8 space-y-4">
-          <form action={handleAuthenticate}>
-            <Button
-              type="submit"
-              className="w-full"
-              color="indigo"
-            >
-              {content.signInWithGoogle.value}
-            </Button>
-          </form>
-        </div>
-
-        <div className="mt-8 text-center">
-          <Link href="/" className="text-sm text-zinc-500 hover:text-zinc-700">
-            {content.backToHome.value}
-          </Link>
-        </div>
+    <div className="w-full max-w-sm">
+      <div className="text-center">
+        <Heading level={1}>{content.title.value}</Heading>
+        <Text className="mt-2 text-zinc-500">{content.subtitle.value}</Text>
       </div>
+
+      <div className="mt-8 space-y-4">
+        <form action={handleAuthenticate}>
+          <Button
+            type="submit"
+            className="w-full"
+            color="indigo"
+          >
+            {content.signInWithGoogle.value}
+          </Button>
+        </form>
+      </div>
+
+      <div className="mt-8 text-center">
+        <Link href="/" className="text-sm text-zinc-500 hover:text-zinc-700">
+          {content.backToHome.value}
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Sign in page component
+ * 
+ * Provides authentication options for users to sign in to the application.
+ * Currently supports Google OAuth provider through NextAuth.
+ */
+export default function SignInPage(): ReactElement {
+  return (
+    <AuthLayout>
+      <Suspense fallback={
+        <div className="w-full max-w-sm">
+          <div className="text-center">
+            <Heading level={1}>Sign In</Heading>
+            <Text className="mt-2 text-zinc-500">Loading...</Text>
+          </div>
+        </div>
+      }>
+        <SignInForm />
+      </Suspense>
     </AuthLayout>
   );
 }

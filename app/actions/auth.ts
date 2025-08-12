@@ -1,6 +1,7 @@
 'use server'
 
 import { signOut } from '@/auth';
+import { serverLogger } from '@lib/logger.server';
 
 /**
  * Server action to sign out the current user
@@ -20,7 +21,7 @@ export async function signOutAction(): Promise<void> {
         typeof error.digest === 'string' && error.digest.includes('NEXT_REDIRECT')) {
       throw error; // Re-throw redirect errors to allow them to work
     }
-    console.error('Sign out error:', error);
+    serverLogger.error('Sign out error', error instanceof Error ? error : new Error(String(error)), 'auth');
     throw new Error('Failed to sign out');
   }
 }

@@ -135,37 +135,56 @@ function MyComponent(): JSX.Element {  // Cannot find namespace 'JSX'
 project root
 ├── app/                   # Next.js App Router
 │   ├── components/            # Shared UI components
-│   │   ├── ui/                # Base components (tailwindcss/Catalyst)
-│   │   └── common/            # Application-specific shared components
-│   ├── [locale]           # Locale-specific routes used by next-intlayer
+│   │   ├── ui/                # Base Tailwind Catalyst components
+│   │   ├── common/            # Application-specific shared components
+│   │   ├── error-boundaries/  # Error boundary components
+│   │   └── providers/         # React context providers
+│   ├── [locale]/          # Locale-specific routes used by next-intlayer
 │   │   ├── layout.content.ts  # next-intlayer translations for layout 
-│   │   ├── layout.tsx         # Root layout with translations
+│   │   ├── layout.tsx         # Locale-aware layout
+│   │   ├── ClientLayout.tsx   # Client-side layout wrapper
 │   │   ├── page.tsx           # Home page
 │   │   ├── page.content.ts    # Home translations
-│   │   └── (routes)/          # Route groups
-│   ├── layout.tsx         # Root layout with translations│
+│   │   └── [routes]/          # Feature-specific route groups
+│   ├── actions/           # Server Actions
+│   │   ├── __tests__/         # Server action tests
+│   │   └── [action].ts        # Individual server actions
+│   ├── api/               # API routes
+│   │   └── auth/              # NextAuth.js API routes
+│   ├── layout.tsx         # Root layout
 │   ├── favicon.ico   
 │   └── globals.css        # Global styles
 ├── features/              # Feature-based modules (RECOMMENDED)
-│   └── [feature]/
-│       ├── __tests__/     # Co-located tests
-│       ├── presentation/  # Feature components
-│       │   └── [componentName].content.ts # co-located next-intlayer containing translated text
-│       │
-│       ├── hooks/         # Feature-specific hooks
-│       ├── infrastructure/ # API/Datastore integration
-│       ├── domain/ 
+│   └── [FeatureName]/
+│       ├── __tests__/         # Co-located tests
+│       ├── presentation/      # Feature components
+│       │   └── [Component].content.ts # co-located next-intlayer translations
+│       ├── hooks/             # Feature-specific hooks
+│       ├── application/       # Business logic & services
+│       ├── domain/
 │       │   ├── schemas/       # Zod validation schemas
-│       │   └── types/         # TypeScript types
-│       └── index.ts       # Public API
+│       │   └── types/         # Feature-specific TypeScript types
+│       └── index.ts           # Public API
 ├── lib/                   # Core utilities and configurations
-│   ├── utils.ts           # Utility functions
 │   ├── env.ts             # Environment validation
-│   └── constants.ts       # Application constants
-├── hooks/                 # Shared custom hooks
-├── styles/                # Styling files
+│   ├── logger.client.ts   # Client-side logger
+│   ├── logger.server.ts   # Server-side logger
+│   ├── query-client.ts    # TanStack Query client
+│   ├── query-invalidation.ts # Query cache management
+│   └── zod-error-formatter.ts # Error formatting utilities
+├── types/                 # Shared TypeScript types
+│   ├── auth.ts            # Authentication types
+│   ├── api.ts             # API response types
+│   └── common.ts          # Common application types
+├── test/                  # Test configuration
+│   └── setup.ts           # Vitest setup
 ├── public/                # Public assets
-└── types/                 # Shared TypeScript types
+├── auth.ts                # Auth.js v5 configuration
+├── auth.config.ts         # Auth.js v5 config
+├── middleware.ts          # Next.js middleware
+├── intlayer.config.ts     # Intlayer i18n configuration
+├── vitest.config.ts       # Vitest configuration
+└── tsconfig.json          # TypeScript configuration
 ```
 
 ## 🎯 TypeScript Configuration (STRICT REQUIREMENTS)
@@ -247,31 +266,46 @@ project root
 ```json
 {
   "dependencies": {
+    "@auth/firebase-adapter": "^2.10.0",
     "@headlessui/react": "^2.2.4",
     "@heroicons/react": "^2.2.0",
+    "@tanstack/react-form": "^1.19.0",
     "@tanstack/react-query": "^5.83.0",
     "@tanstack/react-table": "^8.21.3",
     "clsx": "^2.1.1",
+    "firebase-admin": "^12.7.0",
     "framer-motion": "^12.23.0",
     "intlayer": "^5.6.0",
-    "next": "15.3.5",
+    "next": "15.4.6",
+    "next-auth": "^5.0.0-beta.29",
     "next-intlayer": "^5.6.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
     "react-dropzone": "^14.3.8",
-    "xlsx": "^0.18.5",
+    "react-error-boundary": "^6.0.0",
+    "winston": "^3.17.0",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zod": "^4.0.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@tanstack/react-query-devtools": "^5.84.2",
+    "@testing-library/jest-dom": "^6.6.4",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "19.1.9",
+    "@types/react-dom": "19.1.7",
+    "@types/xlsx": "^0.0.35",
+    "@vitejs/plugin-react": "^5.0.0",
+    "@vitest/coverage-v8": "^3.2.4",
     "eslint": "^9",
-    "eslint-config-next": "15.3.5",
+    "eslint-config-next": "15.4.6",
+    "jsdom": "^26.1.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.4"
   }
 }
 ```
@@ -786,6 +820,134 @@ function useUpdateUser() {
 }
 ```
 
+## 🔐 Authentication & Security
+
+### Auth.js v5 Configuration (MANDATORY FOR AUTHENTICATION)
+
+This project uses Auth.js v5 (NextAuth.js v5) for authentication. **CRITICAL**: Auth.js v5 has significant breaking changes from v4.
+
+#### MUST Follow These Auth.js v5 Patterns
+
+- **MUST use the new `auth()` function** instead of `getServerSession`
+- **MUST configure auth in `auth.ts`** at project root (not `[...nextauth].ts`)
+- **MUST use middleware for route protection** instead of HOCs
+- **MUST handle sessions with new API structure**
+
+#### Auth.js v5 Configuration Example
+
+```typescript
+// auth.ts (project root)
+import NextAuth from "next-auth"
+import { authConfig } from "./auth.config"
+
+export const { handlers, auth, signIn, signOut } = NextAuth(authConfig)
+```
+
+```typescript
+// auth.config.ts
+import type { NextAuthConfig } from "next-auth"
+
+export const authConfig = {
+  pages: {
+    signIn: '/login',
+  },
+  callbacks: {
+    authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user
+      const isOnDashboard = nextUrl.pathname.startsWith('/dashboard')
+      
+      if (isOnDashboard) {
+        if (isLoggedIn) return true
+        return false // Redirect unauthenticated users to login page
+      } else if (isLoggedIn) {
+        return Response.redirect(new URL('/dashboard', nextUrl))
+      }
+      return true
+    },
+  },
+  providers: [], // Add providers here
+} satisfies NextAuthConfig
+```
+
+#### Server-Side Auth Usage
+
+```typescript
+// Server Components & Actions
+import { auth } from '@/auth'
+
+export default async function Dashboard() {
+  const session = await auth()
+  
+  if (!session?.user) {
+    redirect('/login')
+  }
+
+  return <div>Welcome {session.user.email}</div>
+}
+
+// Server Actions
+'use server'
+export async function getUserData() {
+  const session = await auth()
+  if (!session?.user) {
+    throw new Error('Unauthorized')
+  }
+  // Proceed with authenticated logic
+}
+```
+
+#### Client-Side Auth Usage
+
+```typescript
+// Client Components
+'use client'
+import { useSession } from "next-auth/react"
+
+export function ClientComponent() {
+  const { data: session, status } = useSession()
+  
+  if (status === "loading") return <Loading />
+  if (status === "unauthenticated") return <SignIn />
+  
+  return <div>Welcome {session?.user?.email}</div>
+}
+```
+
+#### Middleware Configuration
+
+```typescript
+// middleware.ts
+import { auth } from "@/auth"
+
+export default auth((req) => {
+  // req.auth contains the session
+})
+
+export const config = {
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+}
+```
+
+#### CRITICAL Auth.js v5 Migration Notes
+
+- **Session callback signature changed**: `session({ session, token })` instead of `session({ session, user })`
+- **JWT callback required for persistent data**: Must use JWT callback to persist user data
+- **Provider configuration updated**: Check provider-specific v5 configurations
+- **TypeScript types changed**: Import types from `next-auth` directly
+
+#### Environment Variables (Auth.js v5)
+
+```typescript
+// lib/env.ts - Update for Auth.js v5
+const envSchema = z.object({
+  NODE_ENV: z.enum(['development', 'test', 'production']),
+  NEXT_PUBLIC_APP_URL: z.string().url(),
+  AUTH_SECRET: z.string().min(32), // Changed from NEXTAUTH_SECRET
+  AUTH_URL: z.string().url(), // Changed from NEXTAUTH_URL
+  // Provider-specific variables...
+});
+```
+
 ## 🔐 Security Requirements (MANDATORY)
 
 ### Input Validation (MUST IMPLEMENT ALL)
@@ -883,26 +1045,298 @@ const eslintConfig = [
 export default eslintConfig;
 ```
 
+## 📝 Logging Guidelines (MANDATORY)
+
+### MUST Follow These Logging Rules
+
+- **NEVER use `console.log`, `console.error`, or `console.warn`** - Use structured loggers
+- **MUST use appropriate logger** based on execution environment (see decision matrix below)
+- **MUST provide context** for all log messages using available LogContext values
+- **MUST handle errors with structured logging** - never swallow errors silently
+- **MUST use proper error types** - convert unknown errors to Error instances
+- **NEVER log sensitive data** - passwords, tokens, API keys, or PII
+
+### Logger Selection Decision Matrix
+
+| Code Location | Directive | Logger | Import |
+|---------------|-----------|--------|---------|
+| Client Components | `'use client'` | Client Logger | `@/lib/logger.client` |
+| Custom Hooks | `'use client'` | Client Logger | `@/lib/logger.client` |
+| Server Actions | `'use server'` | Server Logger | `@/lib/logger.server` |
+| API Routes | N/A (server) | Server Logger | `@/lib/logger.server` |
+| Middleware | N/A (server) | Server Logger | `@/lib/logger.server` |
+| Server Components | N/A (server) | Server Logger | `@/lib/logger.server` |
+| Utilities (client) | Used by client | Client Logger | `@/lib/logger.client` |
+| Utilities (server) | Used by server | Server Logger | `@/lib/logger.server` |
+
+**Rule of Thumb**: If your file has `'use client'` directive or runs in browser, use Client Logger. Otherwise, use Server Logger.
+
+### Client Logger Usage (Client Components & Hooks)
+
+Use `@/lib/logger.client` in:
+- Client components (`'use client'` directive)
+- Custom hooks that run in browser
+- Browser-only event handlers
+- Client-side error boundaries
+
+```typescript
+import { logger } from '@/lib/logger.client';
+
+// Client component example
+'use client'
+export function MyComponent(): ReactElement {
+  const handleClick = useCallback((): void => {
+    try {
+      // Some operation
+      logger.info('User clicked button', 'ui', { buttonId: 'submit' });
+    } catch (error) {
+      logger.error('Button click failed', 'ui', { error, buttonId: 'submit' });
+    }
+  }, []);
+
+  return <button onClick={handleClick}>Click me</button>;
+}
+```
+
+**Client Logger API:**
+```typescript
+logger.error(message: string, context: LogContext, meta: { error: Error, [key: string]: unknown })
+logger.warn(message: string, context: LogContext, meta?: Record<string, unknown>)
+logger.info(message: string, context: LogContext, meta?: Record<string, unknown>)
+logger.debug(message: string, context: LogContext, meta?: Record<string, unknown>)
+```
+
+### Server Logger Usage (Server Actions, API Routes, Middleware)
+
+Use `@/lib/logger.server` in:
+- Server actions (`'use server'` directive)
+- API route handlers (`app/api/**/route.ts`)
+- Middleware (`middleware.ts`)
+- Server components (when logging is needed)
+- Server-side utilities
+
+```typescript
+import { serverLogger } from '@/lib/logger.server';
+
+// Server action example
+'use server'
+export async function createUser(userData: UserData): Promise<void> {
+  try {
+    const user = await db.user.create({ data: userData });
+    serverLogger.info('User created successfully', 'auth', { userId: user.id });
+  } catch (error) {
+    serverLogger.error('Failed to create user', error instanceof Error ? error : new Error(String(error)), 'auth', { userData: userData.email });
+    throw new Error('User creation failed');
+  }
+}
+
+// API route example
+export async function POST(request: Request): Promise<Response> {
+  try {
+    const data = await request.json();
+    // Process data
+    serverLogger.info('API request processed', 'api', { endpoint: '/api/users' });
+    return Response.json({ success: true });
+  } catch (error) {
+    serverLogger.error('API request failed', error instanceof Error ? error : new Error(String(error)), 'api', { endpoint: '/api/users' });
+    return Response.json({ error: 'Request failed' }, { status: 500 });
+  }
+}
+```
+
+**Server Logger API:**
+```typescript
+serverLogger.error(message: string, error: Error, context?: LogContext, meta?: Record<string, unknown>)
+serverLogger.warn(message: string, context?: LogContext, meta?: Record<string, unknown>)
+serverLogger.info(message: string, context?: LogContext, meta?: Record<string, unknown>)
+serverLogger.debug(message: string, context?: LogContext, meta?: Record<string, unknown>)
+
+// Specialized methods
+serverLogger.apiRequest(method: string, url: string, duration?: number, statusCode?: number)
+serverLogger.apiError(method: string, url: string, error: Error, statusCode?: number)
+serverLogger.fileProcessing(fileName: string, action: string, result?: 'success' | 'error', meta?: Record<string, unknown>)
+serverLogger.categorization(action: string, productCount?: number, duration?: number, success?: boolean)
+```
+
+### Log Contexts (MUST USE APPROPRIATE CONTEXT)
+
+Available contexts for both loggers:
+- `'api'` - API routes, external API calls
+- `'auth'` - Authentication, authorization
+- `'db'` - Database operations
+- `'file'` - File operations, uploads, processing
+- `'categorization'` - Product categorization logic
+- `'ui'` - User interface interactions, component events
+- `'system'` - System-level operations, startup, configuration
+- `'query'` - TanStack Query operations
+- `'configuration'` - Configuration management
+
+### Environment-Specific Behavior
+
+**Development:**
+- Enhanced console output with colors and source file locations
+- Debug level enabled
+- Pretty-printed objects and stack traces
+
+**Production:**
+- JSON structured logs
+- File logging enabled (`logs/app.log`, `logs/error.log`)
+- Optimized for log aggregation systems
+
+**Test:**
+- Minimal logging to reduce noise
+- Silent mode for console output
+
+### Error Handling with Loggers
+
+```typescript
+// ✅ CORRECT: Server action error handling
+export async function serverAction(): Promise<void> {
+  try {
+    await someOperation();
+  } catch (error) {
+    // Handle NextAuth redirects properly
+    if (error && typeof error === 'object' && 'digest' in error && 
+        typeof error.digest === 'string' && error.digest.includes('NEXT_REDIRECT')) {
+      throw error; // Re-throw redirect errors
+    }
+    serverLogger.error('Operation failed', error instanceof Error ? error : new Error(String(error)), 'system');
+    throw new Error('Operation failed');
+  }
+}
+
+// ✅ CORRECT: Client component error handling
+'use client'
+export function ClientComponent(): ReactElement {
+  const [error, setError] = useState<Error | null>(null);
+
+  const handleAction = useCallback(async (): Promise<void> => {
+    try {
+      await clientOperation();
+      logger.info('Client operation completed', 'ui');
+    } catch (error) {
+      const errorObj = error instanceof Error ? error : new Error(String(error));
+      logger.error('Client operation failed', 'ui', { error: errorObj });
+      setError(errorObj);
+    }
+  }, []);
+
+  if (error) {
+    return <ErrorDisplay error={error} />;
+  }
+
+  return <button onClick={handleAction}>Execute</button>;
+}
+```
+
 ## 📋 Development Commands
 
 ```json
 {
   "scripts": {
-    "dev": "next dev",
+    "dev": "NODE_OPTIONS='--inspect' next dev --turbopack --experimental-https",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint --max-warnings 0",
-    "lint:fix": "next lint --fix",
+    "lint": "next lint",
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
     "test:ui": "vitest --ui",
-    "type-check": "tsc --noEmit",
-    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "validate": "npm run type-check && npm run lint && npm run test:coverage"
+    "type-check": "tsc --noEmit"
   }
 }
+```
+
+### Recommended Additional Scripts
+
+```json
+{
+  "scripts": {
+    "lint:fix": "next lint --fix",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "validate": "npm run type-check && npm run lint && npm run test:coverage",
+    "intlayer:build": "node node_modules/intlayer-cli/dist/cjs/index.cjs build"
+  }
+}
+```
+
+## 🌐 Intlayer Internationalization (MANDATORY)
+
+### Building Intlayer Dictionaries
+
+This project uses Intlayer for internationalization. **CRITICAL**: The `npx intlayer build` command may not work due to binary symlink issues.
+
+#### MUST Use This Command for Building Dictionaries
+
+```bash
+# ✅ CORRECT: Use the npm script
+npm run intlayer:build
+
+# ❌ AVOID: This may fail due to missing binary symlinks
+npx intlayer build
+```
+
+#### Intlayer Build Process
+
+- **MUST run `npm run intlayer:build`** after creating or modifying `.content.ts` files
+- **MUST build dictionaries** before running the development server or building for production
+- **Dictionaries are generated** in the `.intlayer/` directory
+- **MUST include intlayer build** in your CI/CD pipeline
+
+#### Integration with Development Workflow
+
+```json
+{
+  "scripts": {
+    "dev": "npm run intlayer:build && NODE_OPTIONS='--inspect' next dev --turbopack --experimental-https",
+    "build": "npm run intlayer:build && next build",
+    "intlayer:build": "node node_modules/intlayer-cli/dist/cjs/index.cjs build"
+  }
+}
+```
+
+#### Content File Structure (MANDATORY PATTERNS)
+
+All translation content files MUST follow this pattern:
+
+```typescript
+// [Component].content.ts
+import {type Dictionary, t} from "intlayer";
+
+const content = {
+  key: "unique-component-key", // MUST be unique across the application
+  content: {
+    SectionName: {
+      messageKey: t({
+        en: "English translation",
+        ko: "Korean translation", // Add all supported locales
+      }),
+    },
+  },
+} satisfies Dictionary;
+
+export default content;
+```
+
+#### Troubleshooting Intlayer Build Issues
+
+**Common Issues:**
+1. **Binary not found**: Use `npm run intlayer:build` instead of `npx intlayer build`
+2. **Dictionary conflicts**: Ensure all `key` values are unique across content files
+3. **Missing locales**: Verify all content files include translations for all configured locales
+4. **Build order**: Always build dictionaries before Next.js build
+
+**Debug Commands:**
+```bash
+# Check Intlayer configuration
+cat intlayer.config.ts
+
+# Verify content files structure
+find . -name "*.content.ts" -type f
+
+# Manual build with verbose output
+node node_modules/intlayer-cli/dist/cjs/index.cjs build --verbose
 ```
 
 ## ⚠️ CRITICAL GUIDELINES (MUST FOLLOW ALL)
