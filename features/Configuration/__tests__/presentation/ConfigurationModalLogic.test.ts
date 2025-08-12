@@ -24,12 +24,11 @@ describe('ConfigurationModal Business Logic', () => {
     const validConfig: ConfigurationForm = {
       seo: {
         temperature: 7,
-        useImages: true,
         bannedWords: ['word1', 'word2'],
       },
       image: {
         rotationDirection: 'clockwise',
-        rotationDegrees: 90,
+        rotationDegrees: 3,
         flipImage: false,
         enableWatermark: true,
         watermarkImage: 'watermark.png',
@@ -41,7 +40,7 @@ describe('ConfigurationModal Business Logic', () => {
     
     if (result.success) {
       expect(result.data.seo.temperature).toBe(7);
-      expect(result.data.image.rotationDegrees).toBe(90);
+      expect(result.data.image.rotationDegrees).toBe(3);
     }
   });
 
@@ -52,12 +51,11 @@ describe('ConfigurationModal Business Logic', () => {
     const invalidConfig: ConfigurationForm = {
       seo: {
         temperature: 15, // Invalid: > 10
-        useImages: true,
         bannedWords: [...DEFAULT_BANNED_WORDS],
       },
       image: {
         rotationDirection: 'clockwise',
-        rotationDegrees: 90,
+        rotationDegrees: 2,
         flipImage: false,
         enableWatermark: false,
       },
@@ -80,13 +78,12 @@ describe('ConfigurationModal Business Logic', () => {
   it('should reject configuration with invalid rotation degrees', () => {
     const invalidConfig: ConfigurationForm = {
       seo: {
-        temperature: 50,
-        useImages: true,
+        temperature: 50, // Invalid: > 10
         bannedWords: [...DEFAULT_BANNED_WORDS],
       },
       image: {
         rotationDirection: 'clockwise',
-        rotationDegrees: 400, // Invalid: exceeds max of 360
+        rotationDegrees: 6, // Invalid: exceeds max of 5
         flipImage: false,
         enableWatermark: false,
       },
@@ -124,7 +121,6 @@ describe('ConfigurationModal Business Logic', () => {
     const minimalConfig: ConfigurationForm = {
       seo: {
         temperature: 0,
-        useImages: false,
         bannedWords: [],
       },
       image: {
@@ -146,12 +142,11 @@ describe('ConfigurationModal Business Logic', () => {
     const maximalConfig: ConfigurationForm = {
       seo: {
         temperature: 10,
-        useImages: true,
         bannedWords: ['word1', 'word2', 'word3', 'word4', 'word5'],
       },
       image: {
         rotationDirection: 'counter-clockwise',
-        rotationDegrees: 270,
+        rotationDegrees: 5,
         flipImage: true,
         enableWatermark: true,
         watermarkImage: 'very-long-watermark-filename-with-special-chars-123.png',
@@ -163,7 +158,7 @@ describe('ConfigurationModal Business Logic', () => {
     
     if (result.success) {
       expect(result.data.seo.temperature).toBe(10);
-      expect(result.data.image.rotationDegrees).toBe(270);
+      expect(result.data.image.rotationDegrees).toBe(5);
       expect(result.data.image.rotationDirection).toBe('counter-clockwise');
     }
   });

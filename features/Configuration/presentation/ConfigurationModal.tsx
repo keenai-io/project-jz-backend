@@ -52,12 +52,11 @@ export function ConfigurationModal({
   const defaultValues: ConfigurationForm = {
     seo: {
       temperature: 5,
-      useImages: true,
       bannedWords: [...DEFAULT_BANNED_WORDS]
     },
     image: {
       rotationDirection: 'clockwise' as ImageRotationDirection,
-      rotationDegrees: 25,
+      rotationDegrees: 2,
       flipImage: false,
       enableWatermark: false,
     }
@@ -67,7 +66,6 @@ export function ConfigurationModal({
     defaultValues: {
       seo: {
         temperature: userConfiguration?.seo.temperature ?? defaultValues.seo.temperature,
-        useImages: userConfiguration?.seo.useImages ?? defaultValues.seo.useImages,
         bannedWords: userConfiguration?.seo.bannedWords ?? defaultValues.seo.bannedWords
       },
       image: {
@@ -252,22 +250,6 @@ export function ConfigurationModal({
                 )}
               </form.Field>
 
-              {/* Use Images Checkbox */}
-              <form.Field name="seo.useImages">
-                {(field) => (
-                  <CheckboxField>
-                    <Checkbox
-                      checked={field.state.value}
-                      onChange={field.handleChange}
-                    />
-                    <Label>{content.SeoSection.useImagesLabel}</Label>
-                    <Text data-slot="description" className="text-sm">
-                      {content.SeoSection.useImagesDescription}
-                    </Text>
-                  </CheckboxField>
-                )}
-              </form.Field>
-
               {/* Banned Words */}
               <div>
                 <Label>{content.SeoSection.bannedWordsLabel}</Label>
@@ -369,7 +351,7 @@ export function ConfigurationModal({
                 validators={{
                   onChange: ({value}) => {
                     const num = Number(value);
-                    return isNaN(num) || num < -360 || num > 360 
+                    return isNaN(num) || num < 0 || num > 5 
                       ? content.Validation.rotationDegreesInvalid 
                       : undefined;
                   },
@@ -380,12 +362,12 @@ export function ConfigurationModal({
                     <Label>{content.ImageSection.rotationDegreesLabel}</Label>
                     <Input
                       type="number"
-                      min="-360"
-                      max="360"
+                      min="0"
+                      max="5"
                       step="1"
                       value={field.state.value.toString()}
                       onChange={(e) => field.handleChange(Number(e.target.value))}
-                      placeholder="25"
+                      placeholder="2"
                     />
                     {field.state.meta.errors.map((error) => (
                       <Text key={error?.toString() || Math.random().toString()} className="text-red-600 text-sm mt-1">

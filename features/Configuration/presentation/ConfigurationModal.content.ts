@@ -40,14 +40,6 @@ const configurationModalContent = {
         en: "Controls the randomness of generated content (0 = Deterministic, 10 = Creative)",
         ko: "생성된 콘텐츠의 무작위성을 제어합니다 (0 = 결정적, 10 = 창의적)",
       }),
-      useImagesLabel: t({
-        en: "Use Images",
-        ko: "이미지 사용",
-      }),
-      useImagesDescription: t({
-        en: "Include images in SEO optimization process",
-        ko: "SEO 최적화 과정에 이미지를 포함합니다",
-      }),
       bannedWordsLabel: t({
         en: "Banned Words",
         ko: "금지 단어",
@@ -133,8 +125,8 @@ const configurationModalContent = {
         ko: "온도는 0에서 10 사이여야 합니다",
       }),
       rotationDegreesInvalid: t({
-        en: "Rotation degrees must be between -360 and 360",
-        ko: "회전 각도는 -360에서 360 사이여야 합니다",
+        en: "Rotation degrees must be between 0 and 5",
+        ko: "회전 각도는 0에서 5 사이여야 합니다",
       }),
       wordAlreadyExists: t({
         en: "This word is already in the banned words list",

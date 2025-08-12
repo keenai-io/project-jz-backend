@@ -23,7 +23,6 @@ describe('Configuration Schemas', () => {
     it('should validate correct SEO configuration', () => {
       const validSeoConfig = {
         temperature: 7,
-        useImages: true,
         bannedWords: ['test', 'word'],
       };
 
@@ -35,7 +34,6 @@ describe('Configuration Schemas', () => {
       const result = SeoConfigurationSchema.parse({});
       
       expect(result.temperature).toBe(5);
-      expect(result.useImages).toBe(true);
       expect(result.bannedWords).toEqual([]);
     });
 
@@ -58,7 +56,7 @@ describe('Configuration Schemas', () => {
     it('should validate correct image configuration', () => {
       const validImageConfig = {
         rotationDirection: 'clockwise' as const,
-        rotationDegrees: 90,
+        rotationDegrees: 3,
         flipImage: true,
         enableWatermark: false,
       };
@@ -71,23 +69,23 @@ describe('Configuration Schemas', () => {
       const result = ImageConfigurationSchema.parse({});
       
       expect(result.rotationDirection).toBe('clockwise');
-      expect(result.rotationDegrees).toBe(25);
+      expect(result.rotationDegrees).toBe(2);
       expect(result.flipImage).toBe(false);
       expect(result.enableWatermark).toBe(false);
     });
 
     it('should reject invalid rotation degrees', () => {
       expect(() => ImageConfigurationSchema.parse({
-        rotationDegrees: 400
+        rotationDegrees: 6 // Invalid: > 5
       })).toThrow();
 
       expect(() => ImageConfigurationSchema.parse({
-        rotationDegrees: -400
+        rotationDegrees: -1 // Invalid: < 0
       })).toThrow();
     });
 
     it('should accept valid rotation degrees', () => {
-      [0, 25, 45, 90, 180, 270, 360, -90, -180].forEach(degrees => {
+      [0, 1, 2, 3, 4, 5].forEach(degrees => {
         const result = ImageConfigurationSchema.parse({
           rotationDegrees: degrees
         });
@@ -102,12 +100,11 @@ describe('Configuration Schemas', () => {
         name: 'Test Configuration',
         seo: {
           temperature: 6,
-          useImages: false,
           bannedWords: ['banned'],
         },
         image: {
           rotationDirection: 'counter-clockwise' as const,
-          rotationDegrees: 180,
+          rotationDegrees: 4,
           flipImage: true,
           enableWatermark: true,
           watermarkImage: 'watermark.png',
@@ -138,12 +135,11 @@ describe('Configuration Schemas', () => {
       const formData = {
         seo: {
           temperature: 8,
-          useImages: true,
           bannedWords: ['form', 'test'],
         },
         image: {
           rotationDirection: 'clockwise' as const,
-          rotationDegrees: 90,
+          rotationDegrees: 3,
           flipImage: false,
           enableWatermark: false,
         },
@@ -163,12 +159,11 @@ describe('Configuration Schemas', () => {
       const formData = {
         seo: {
           temperature: 7,
-          useImages: true,
           bannedWords: ['validation'],
         },
         image: {
           rotationDirection: 'clockwise' as const,
-          rotationDegrees: 270,
+          rotationDegrees: 5,
           flipImage: true,
           enableWatermark: false,
         },
@@ -182,7 +177,6 @@ describe('Configuration Schemas', () => {
       const invalidFormData = {
         seo: {
           temperature: 15, // Invalid temperature (> 10)
-          useImages: true,
           bannedWords: [],
         },
         image: {

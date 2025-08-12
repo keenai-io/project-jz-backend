@@ -14,9 +14,6 @@ export const SeoConfigurationSchema = z.object({
   /** Temperature setting from 0 to 10 (whole numbers only) */
   temperature: z.number().int().min(0).max(10).default(5),
   
-  /** Whether to use images in SEO optimization */
-  useImages: z.boolean().default(true),
-  
   /** List of words to be banned from product names */
   bannedWords: z.array(z.string().min(1)).default([]),
 });
@@ -37,8 +34,8 @@ export const ImageConfigurationSchema = z.object({
   /** Rotation direction */
   rotationDirection: ImageRotationDirectionSchema.default('clockwise'),
   
-  /** Rotation degrees (any number, default 25) */
-  rotationDegrees: z.number().min(-360).max(360).default(25),
+  /** Rotation degrees (0-5 degrees, default 2) */
+  rotationDegrees: z.number().min(0).max(5).default(2),
   
   /** Whether to flip the image */
   flipImage: z.boolean().default(false),
