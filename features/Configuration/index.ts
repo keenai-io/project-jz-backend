@@ -20,10 +20,6 @@ export { default as configurationModalContent } from './presentation/Configurati
 
 // Hooks exports
 export {
-  useConfigurations,
-  useConfiguration,
-  useCreateConfiguration,
-  useUpdateConfiguration,
-  useDeleteConfiguration,
-  usePrefetchConfigurations,
+  useUserConfiguration,
+  useUserConfigurationMutation,
 } from './hooks/useConfiguration';

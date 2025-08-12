@@ -27,7 +27,6 @@ import Image from 'next/image'
 import { Text } from "@components/ui/text";
 import { LanguageSwitcher } from '@components/common/LanguageSwitcher';
 import { ConfigurationModal } from '@features/Configuration';
-import type { ConfigurationForm } from '@features/Configuration';
 import {useIntlayer, useLocale} from "next-intlayer";
 import { signOutAction } from '@/app/actions/auth';
 import { useSession } from 'next-auth/react';
@@ -50,21 +49,6 @@ export function ClientLayout({ children }: ClientLayoutProps): ReactElement {
     setIsConfigModalOpen(true);
   }, []);
 
-  const handleConfigSave = useCallback(async (data: ConfigurationForm): Promise<void> => {
-    try {
-      // TODO: In a real app, you would save this to your backend
-      console.log('Saving configuration:', data);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For now, just log the data and close the modal
-      setIsConfigModalOpen(false);
-    } catch (error) {
-      console.error('Failed to save configuration:', error);
-      throw error; // Re-throw so the modal can handle the error
-    }
-  }, []);
 
   const handleSignOut = useCallback((e: MouseEvent): void => {
     e.preventDefault();
@@ -226,7 +210,6 @@ export function ClientLayout({ children }: ClientLayoutProps): ReactElement {
         <ConfigurationModal
           isOpen={isConfigModalOpen}
           onClose={() => setIsConfigModalOpen(false)}
-          onSave={handleConfigSave}
         />
       )}
         </QueryErrorBoundary>

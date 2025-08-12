@@ -261,70 +261,7 @@ project root
 
 ## 📦 Package Management & Dependencies
 
-### Essential Next.js 15 Dependencies
-
-```json
-{
-  "dependencies": {
-    "@auth/firebase-adapter": "^2.10.0",
-    "@headlessui/react": "^2.2.4",
-    "@heroicons/react": "^2.2.0",
-    "@tanstack/react-form": "^1.19.0",
-    "@tanstack/react-query": "^5.83.0",
-    "@tanstack/react-table": "^8.21.3",
-    "clsx": "^2.1.1",
-    "firebase-admin": "^12.7.0",
-    "framer-motion": "^12.23.0",
-    "intlayer": "^5.6.0",
-    "next": "15.4.6",
-    "next-auth": "^5.0.0-beta.29",
-    "next-intlayer": "^5.6.0",
-    "react": "19.1.1",
-    "react-dom": "19.1.1",
-    "react-dropzone": "^14.3.8",
-    "react-error-boundary": "^6.0.0",
-    "winston": "^3.17.0",
-    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
-    "zod": "^4.0.5"
-  },
-  "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
-    "@tanstack/react-query-devtools": "^5.84.2",
-    "@testing-library/jest-dom": "^6.6.4",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^14.6.1",
-    "@types/node": "^20",
-    "@types/react": "19.1.9",
-    "@types/react-dom": "19.1.7",
-    "@types/xlsx": "^0.0.35",
-    "@vitejs/plugin-react": "^5.0.0",
-    "@vitest/coverage-v8": "^3.2.4",
-    "eslint": "^9",
-    "eslint-config-next": "15.4.6",
-    "jsdom": "^26.1.0",
-    "tailwindcss": "^4",
-    "typescript": "^5",
-    "vitest": "^3.2.4"
-  }
-}
-```
-
-### Recommended Additional Dependencies
-
-```bash
-# UI and Styling
-npm install clsx tailwind-merge
-
-# Form Handling and Validation
-npm install react-hook-form @hookform/resolvers zod
-
-# State Management (when needed)
-npm install @tanstack/react-query zustand
-
-# Development Tools
-npm install -D @testing-library/react @testing-library/jest-dom vitest jsdom
-```
+The project uses modern Next.js 15 with React 19 and TypeScript. For complete setup instructions and dependency list, see [README.md](./README.md#core-technologies).
 
 ## 🛡️ Data Validation with Zod (MANDATORY FOR ALL EXTERNAL DATA)
 
@@ -948,151 +885,9 @@ const envSchema = z.object({
 });
 ```
 
-#### Firebase Authentication Setup (MANDATORY FOR PRODUCTION)
+#### Firebase/Firestore Setup
 
-This project uses Firebase/Firestore as the Auth.js adapter for persistent user data. **CRITICAL**: Proper Firebase configuration is required for authentication to work.
-
-##### Firebase Configuration Requirements
-
-- **MUST have a Firebase project** with Firestore database enabled
-- **MUST have proper service account credentials** configured
-- **MUST run Firestore setup** to create required collections
-
-##### Firestore Adapter Configuration
-
-```typescript
-// auth.ts
-import { FirestoreAdapter } from "@auth/firebase-adapter"
-import { initializeApp, getApps, cert, applicationDefault } from "firebase-admin/app"
-import { getFirestore } from "firebase-admin/firestore"
-
-// Initialize Firebase Admin if not already initialized
-if (getApps().length === 0) {
-  const hasFirebaseEnvVars = process.env.FIREBASE_PROJECT_ID && 
-                             process.env.FIREBASE_CLIENT_EMAIL && 
-                             process.env.FIREBASE_PRIVATE_KEY;
-
-  if (hasFirebaseEnvVars) {
-    initializeApp({
-      credential: cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-    })
-  } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-    initializeApp({
-      credential: applicationDefault(),
-    })
-  }
-}
-
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: FirestoreAdapter(getFirestore()),
-  // ... other config
-})
-```
-
-##### Environment Variables for Firebase
-
-```bash
-# Method 1: Individual environment variables (recommended for production)
-FIREBASE_PROJECT_ID=your-firebase-project-id
-FIREBASE_CLIENT_EMAIL=your-firebase-client-email
-FIREBASE_PRIVATE_KEY=your-firebase-private-key
-FIRESTORE_DATABASE_ID=(default)  # Optional: specify database ID, defaults to "(default)"
-
-# Method 2: Service account credentials file (good for development)
-GOOGLE_APPLICATION_CREDENTIALS=./credentials.json
-FIRESTORE_DATABASE_ID=your-database-id  # Optional: if using non-default database
-```
-
-##### Firebase Setup Commands
-
-```bash
-# Install dotenv if not already present (required for setup script)
-npm install --save-dev dotenv
-
-# Setup Firestore collections for Auth.js
-npm run setup:firestore
-
-# Verify your Firebase configuration
-npm run type-check  # Should pass without Firebase credential errors
-```
-
-##### Troubleshooting Firebase Authentication Errors
-
-**Common Error**: `Error: 5 NOT_FOUND` - Firestore database not found
-
-**Solutions**:
-1. **Verify Firebase project exists and has Firestore enabled**:
-   - Go to Firebase Console > Project Settings
-   - Ensure Firestore Database is created (not just Realtime Database)
-   - Note the database ID (usually "(default)" for first database)
-
-2. **Create Firestore Database if missing**:
-   - Go to Firebase Console > Firestore Database
-   - Click "Create database"
-   - Choose security rules (test mode for development)
-   - Select a location (cannot be changed later)
-
-3. **Check database ID configuration**:
-   ```bash
-   # In your .env.local file, specify the correct database ID
-   FIRESTORE_DATABASE_ID=(default)  # or your specific database ID
-   ```
-
-4. **Verify credentials are properly configured**:
-   ```bash
-   # Test Firebase connection with environment variables loaded
-   node -r dotenv/config -e "console.log('Project:', process.env.FIREBASE_PROJECT_ID); console.log('Database:', process.env.FIRESTORE_DATABASE_ID || '(default)');" dotenv_config_path=.env.local
-   ```
-
-5. **Run Firestore setup script with environment variables**:
-   ```bash
-   # The setup script now loads .env.local automatically
-   npm run setup:firestore
-   
-   # Or run directly with environment variables
-   GOOGLE_APPLICATION_CREDENTIALS=./credentials.json npm run setup:firestore
-   ```
-
-6. **Verify service account permissions**:
-   - Service account needs "Firestore Service Agent" role
-   - Go to Firebase Console > IAM & Admin > IAM
-   - Check that your service account has proper permissions
-
-7. **Check for multiple databases**:
-   - If you have multiple Firestore databases in your project
-   - Ensure `FIRESTORE_DATABASE_ID` matches the exact database ID
-   - Database IDs are case-sensitive
-
-**Common Error**: `AdapterError` with Firebase connection failures
-
-**Solutions**:
-1. **Check network connectivity** to Firebase endpoints
-2. **Verify private key format** (newlines properly escaped)
-3. **Ensure project ID matches** your Firebase project exactly
-4. **Check for quota limits** in Firebase Console
-
-##### Required Firestore Collections
-
-Auth.js requires these collections (automatically created by setup script):
-- `users` - Store user profile information
-- `accounts` - Store linked OAuth provider accounts
-- `sessions` - Store active user sessions
-- `verification_tokens` - Store email verification tokens
-
-##### Development vs Production Setup
-
-**Development**:
-- Use `credentials.json` file for simplicity
-- Set `GOOGLE_APPLICATION_CREDENTIALS=./credentials.json`
-
-**Production**:
-- Use individual environment variables for security
-- Never commit `credentials.json` to repository
-- Use encrypted secrets in deployment platform
+This project uses Firebase/Firestore for authentication and data storage. For complete setup instructions, troubleshooting, and configuration details, see [README.md - Firebase Setup](./README.md#-firebase-setup).
 
 ## 🔐 Security Requirements (MANDATORY)
 
@@ -1377,112 +1172,350 @@ export function ClientComponent(): ReactElement {
 
 ## 📋 Development Commands
 
-```json
-{
-  "scripts": {
-    "dev": "NODE_OPTIONS='--inspect' next dev --turbopack --experimental-https",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "test": "vitest",
-    "test:watch": "vitest --watch",
-    "test:coverage": "vitest --coverage",
-    "test:ui": "vitest --ui",
-    "type-check": "tsc --noEmit"
-  }
-}
-```
-
-### Recommended Additional Scripts
-
-```json
-{
-  "scripts": {
-    "lint:fix": "next lint --fix",
-    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "validate": "npm run type-check && npm run lint && npm run test:coverage",
-    "intlayer:build": "node node_modules/intlayer-cli/dist/cjs/index.cjs build"
-  }
-}
-```
+For complete development commands and workflow, see [README.md - Development Commands](./README.md#️-development-commands).
 
 ## 🌐 Intlayer Internationalization (MANDATORY)
 
-### Building Intlayer Dictionaries
+For complete Intlayer setup, content file patterns, and troubleshooting, see [README.md - Internationalization](./README.md#-internationalization-intlayer).
 
-This project uses Intlayer for internationalization. **CRITICAL**: The `npx intlayer build` command may not work due to binary symlink issues.
+### Key Development Patterns
 
-#### MUST Use This Command for Building Dictionaries
-
-```bash
-# ✅ CORRECT: Use the npm script
-npm run intlayer:build
-
-# ❌ AVOID: This may fail due to missing binary symlinks
-npx intlayer build
+**MUST use TanStack Form with proper data initialization**:
+```typescript
+const form = useForm({
+  defaultValues: {
+    field: userConfiguration?.field ?? defaultValues.field,
+    // Use null coalescing for all fields
+  },
+})
 ```
 
-#### Intlayer Build Process
+## 🔄 TanStack Form + Query Integration (MANDATORY PATTERNS)
 
-- **MUST run `npm run intlayer:build`** after creating or modifying `.content.ts` files
-- **MUST build dictionaries** before running the development server or building for production
-- **Dictionaries are generated** in the `.intlayer/` directory
-- **MUST include intlayer build** in your CI/CD pipeline
+### Form Initialization with Query Data
 
-#### Integration with Development Workflow
+**MUST follow this pattern** for forms that load data from APIs:
 
-```json
-{
-  "scripts": {
-    "dev": "npm run intlayer:build && NODE_OPTIONS='--inspect' next dev --turbopack --experimental-https",
-    "build": "npm run intlayer:build && next build",
-    "intlayer:build": "node node_modules/intlayer-cli/dist/cjs/index.cjs build"
+```typescript
+'use client'
+
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useForm } from '@tanstack/react-form'
+
+function MyFormComponent() {
+  // 1. Fetch data with useQuery
+  const { data: userData, isLoading, error } = useQuery({
+    queryKey: ['userData'],
+    queryFn: () => getUserData(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 3,
+  })
+
+  // 2. Initialize form with query data OR defaults
+  const form = useForm({
+    defaultValues: {
+      name: userData?.name ?? '',
+      email: userData?.email ?? '',
+      settings: userData?.settings ?? defaultSettings,
+    },
+    onSubmit: async ({ formApi, value }) => {
+      try {
+        await saveUserMutation.mutateAsync(value)
+        formApi.reset() // Reset form after save
+        onSuccess?.()
+      } catch (error) {
+        // Error handled by mutation
+      }
+    },
+    validators: {
+      onChange: ({ value }) => validateForm(value)
+    }
+  })
+
+  // 3. Mutation for saving
+  const saveUserMutation = useMutation({
+    mutationFn: saveUserData,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userData'] })
+    }
+  })
+
+  // 4. Handle loading and error states
+  if (isLoading) {
+    return <LoadingSpinner />
   }
+
+  if (error) {
+    return <ErrorDisplay error={error} />
+  }
+
+  return (
+    <form onSubmit={(e) => {
+      e.preventDefault()
+      form.handleSubmit()
+    }}>
+      {/* Form fields */}
+    </form>
+  )
 }
 ```
 
-#### Content File Structure (MANDATORY PATTERNS)
+### Loading State Management
 
-All translation content files MUST follow this pattern:
+**MUST handle all loading states**:
 
 ```typescript
-// [Component].content.ts
-import {type Dictionary, t} from "intlayer";
+// In component render
+{isLoading && (
+  <div className="flex items-center justify-center py-8">
+    <div className="flex items-center space-x-2">
+      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+      <Text>Loading data...</Text>
+    </div>
+  </div>
+)}
 
-const content = {
-  key: "unique-component-key", // MUST be unique across the application
-  content: {
-    SectionName: {
-      messageKey: t({
-        en: "English translation",
-        ko: "Korean translation", // Add all supported locales
-      }),
-    },
-  },
-} satisfies Dictionary;
-
-export default content;
+// In form submit button
+<Button 
+  disabled={isLoading || isSubmitting || mutation.isPending}
+>
+  {isSubmitting || mutation.isPending 
+    ? 'Saving...' 
+    : isLoading 
+      ? 'Loading...'
+      : 'Save'
+  }
+</Button>
 ```
 
-#### Troubleshooting Intlayer Build Issues
+### Error State Handling
 
-**Common Issues:**
-1. **Binary not found**: Use `npm run intlayer:build` instead of `npx intlayer build`
-2. **Dictionary conflicts**: Ensure all `key` values are unique across content files
-3. **Missing locales**: Verify all content files include translations for all configured locales
-4. **Build order**: Always build dictionaries before Next.js build
+**MUST display errors appropriately**:
 
-**Debug Commands:**
-```bash
-# Check Intlayer configuration
-cat intlayer.config.ts
+```typescript
+{error && (
+  <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4 mb-6">
+    <Text className="text-red-800 dark:text-red-200">
+      Failed to load data: {error instanceof Error ? error.message : 'Unknown error'}
+    </Text>
+  </div>
+)}
+```
 
-# Verify content files structure
-find . -name "*.content.ts" -type f
+### Query Hook Pattern
 
-# Manual build with verbose output
-node node_modules/intlayer-cli/dist/cjs/index.cjs build --verbose
+**MUST structure query hooks this way**:
+
+```typescript
+export function useUserData() {
+  return useQuery({
+    queryKey: ['userData'], // Consistent naming
+    queryFn: async () => {
+      clientLogger.info('Fetching user data', 'api')
+      const data = await getUserDataFromAPI()
+      clientLogger.info('User data fetched', 'api', { hasData: !!data })
+      return data
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 3,
+    // Handle when data doesn't exist
+    select: (data) => data ?? null,
+  })
+}
+```
+
+### Mutation Hook Pattern
+
+**MUST structure mutation hooks this way**:
+
+```typescript
+export function useUserDataMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (userData: UserData) => {
+      clientLogger.info('Saving user data', 'api', { keys: Object.keys(userData) })
+      await saveUserDataToAPI(userData)
+      return userData
+    },
+    onMutate: async (newData) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['userData'] })
+
+      // Snapshot previous value
+      const previousData = queryClient.getQueryData(['userData'])
+
+      // Optimistically update
+      queryClient.setQueryData(['userData'], newData)
+
+      return { previousData }
+    },
+    onError: (error, newData, context) => {
+      // Rollback on error
+      if (context?.previousData) {
+        queryClient.setQueryData(['userData'], context.previousData)
+      }
+      
+      clientLogger.error('Failed to save data', 
+        error instanceof Error ? error : new Error(String(error)), 
+        'api'
+      )
+    },
+    onSuccess: () => {
+      clientLogger.info('Data saved successfully', 'api')
+      queryClient.invalidateQueries({ queryKey: ['userData'] })
+    },
+    onSettled: () => {
+      // Always refetch to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ['userData'] })
+    },
+  })
+}
+```
+
+### State Synchronization Pattern
+
+**MUST sync local state with query data**:
+
+```typescript
+const [localState, setLocalState] = useState(defaultValue)
+
+// Sync when query data changes
+useEffect(() => {
+  if (queryData && !isLoading) {
+    setLocalState(queryData.someField)
+  }
+}, [queryData, isLoading])
+```
+
+### Conditional Rendering Pattern
+
+**MUST wrap form content conditionally**:
+
+```typescript
+<DialogBody>
+  {isLoading && <LoadingState />}
+  {error && <ErrorState error={error} />}
+  {!isLoading && (
+    <form onSubmit={handleSubmit}>
+      {/* Form content only renders when not loading */}
+    </form>
+  )}
+</DialogBody>
+```
+
+### FORBIDDEN Anti-Patterns
+
+- ❌ **Don't use form defaultValues directly from props** - always use query data
+- ❌ **Don't ignore loading states** - always show loading feedback
+- ❌ **Don't skip error handling** - always display error states
+- ❌ **Don't forget optimistic updates** - use onMutate for better UX
+- ❌ **Don't forget cache invalidation** - always invalidate related queries
+- ❌ **Don't use useEffect for form initialization** - use defaultValues with query data
+
+### Server Actions Integration
+
+**MUST integrate server actions properly with TanStack Query**:
+
+```typescript
+// Server Action
+'use server'
+export async function saveUserData(data: UserData): Promise<void> {
+  const session = await auth()
+  if (!session?.user?.email) {
+    redirect('/signin')
+  }
+
+  const validatedData = UserDataSchema.parse(data)
+  await saveToDatabase(validatedData)
+}
+
+// Query Hook with Server Action
+export function useUserDataMutation() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (userData: UserData) => {
+      // Call server action directly
+      await saveUserData(userData)
+      return userData
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['userData'] })
+    }
+  })
+}
+
+// Component using server action + query
+function UserForm() {
+  const { data, isLoading } = useUserData()
+  const mutation = useUserDataMutation()
+
+  const form = useForm({
+    defaultValues: {
+      name: data?.name ?? '',
+      email: data?.email ?? '',
+    },
+    onSubmit: async ({ value }) => {
+      await mutation.mutateAsync(value)
+    }
+  })
+
+  return <form>{/* form fields */}</form>
+}
+```
+
+### Query Key Patterns
+
+**MUST use consistent query key naming**:
+
+```typescript
+// ✅ CORRECT - Hierarchical and descriptive
+export const queryKeys = {
+  users: ['users'] as const,
+  user: (id: string) => ['users', id] as const,
+  userPosts: (id: string) => ['users', id, 'posts'] as const,
+  configurations: ['configurations'] as const,
+  userConfiguration: ['userConfiguration'] as const,
+}
+
+// Usage
+const { data } = useQuery({
+  queryKey: queryKeys.user('123'),
+  queryFn: () => getUser('123')
+})
+```
+
+### Testing Integration
+
+**MUST test query + form integration**:
+
+```typescript
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { render, screen, waitFor } from '@testing-library/react'
+
+describe('MyFormComponent', () => {
+  test('loads data and initializes form', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false }
+      }
+    })
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <MyFormComponent />
+      </QueryClientProvider>
+    )
+
+    expect(screen.getByText('Loading data...')).toBeInTheDocument()
+    
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('loaded-value')).toBeInTheDocument()
+    })
+  })
+})
 ```
 
 ## ⚠️ CRITICAL GUIDELINES (MUST FOLLOW ALL)
@@ -1516,6 +1549,8 @@ node node_modules/intlayer-cli/dist/cjs/index.cjs build --verbose
 - [ ] Component files under 200 lines
 - [ ] No prop drilling beyond 2 levels
 - [ ] Server/Client components used appropriately
+- [ ] Forms use TanStack Query data initialization pattern
+- [ ] Loading and error states handled in data-fetching components
 
 ### FORBIDDEN Practices
 
@@ -1529,6 +1564,10 @@ node node_modules/intlayer-cli/dist/cjs/index.cjs build --verbose
 - **NEVER exceed file/component size limits**
 - **NEVER prop drill** beyond 2 levels - use context or state management
 - **NEVER commit** without passing all quality checks
+- **NEVER initialize forms with props/state** - use query data with defaults
+- **NEVER skip loading/error states** in components that fetch data
+- **NEVER forget to invalidate queries** after mutations
+- **NEVER use useEffect for form data loading** - use TanStack Query patterns
 
 ---
 

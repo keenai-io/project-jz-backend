@@ -13,7 +13,10 @@
     "test:ui": "vitest --ui",
     "type-check": "tsc --noEmit",
     "intlayer:build": "node node_modules/intlayer-cli/dist/cjs/index.cjs build",
-    "setup:firestore": "node scripts/setup-firestore.js"
+    "setup:firestore": "node scripts/setup-firestore.js",
+    "config:firebase": "node scripts/generate-firebase-config.js",
+    "deploy:firestore-rules": "npm run config:firebase && firebase deploy --only firestore:rules",
+    "deploy:firestore": "npm run config:firebase && firebase deploy --only firestore"
   },
   "dependencies": {
     "@auth/firebase-adapter": "^2.10.0",

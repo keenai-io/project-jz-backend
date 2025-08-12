@@ -1,6 +1,6 @@
 'use client'
 
-import {ReactElement, useState, useCallback} from 'react';
+import {ReactElement, useState, useCallback, useEffect} from 'react';
 import {useForm} from '@tanstack/react-form';
 import {useIntlayer} from 'next-intlayer';
 import {Dialog, DialogTitle, DialogDescription, DialogBody, DialogActions} from '@components/ui/dialog';
@@ -20,8 +20,8 @@ import {
   type ConfigurationForm,
   type ImageRotationDirection,
   DEFAULT_BANNED_WORDS,
-  useCreateConfiguration,
-  useUpdateConfiguration
+  useUserConfiguration,
+  useUserConfigurationMutation
 } from '@features/Configuration';
 
 interface ConfigurationModalProps {
@@ -29,12 +29,6 @@ interface ConfigurationModalProps {
   isOpen: boolean;
   /** Function to close the modal */
   onClose: () => void;
-  /** Initial configuration data (for editing) */
-  initialData?: ConfigurationForm;
-  /** Configuration ID if editing existing configuration */
-  configurationId?: string;
-  /** Optional save handler for legacy support */
-  onSave?: (data: ConfigurationForm) => Promise<void>;
 }
 
 /**
@@ -45,21 +39,14 @@ interface ConfigurationModalProps {
  */
 export function ConfigurationModal({
                                      isOpen,
-                                     onClose,
-                                     initialData,
-                                     configurationId,
-                                     onSave
+                                     onClose
                                    }: ConfigurationModalProps): ReactElement {
   const content = useIntlayer('configuration-modal');
   const [newBannedWord, setNewBannedWord] = useState('');
   
-  // TanStack Query mutations
-  const createMutation = useCreateConfiguration();
-  const updateMutation = useUpdateConfiguration();
-  
-  // Determine if we're creating or updating
-  const isEditing = !!configurationId;
-  const activeMutation = isEditing ? updateMutation : createMutation;
+  // Fetch user configuration data
+  const { data: userConfiguration, isLoading, error } = useUserConfiguration();
+  const configurationMutation = useUserConfigurationMutation();
 
   // Default form values
   const defaultValues: ConfigurationForm = {
@@ -77,26 +64,30 @@ export function ConfigurationModal({
   };
 
   const form = useForm({
-    defaultValues: initialData || defaultValues,
-    onSubmit: async ({value}) => {
+    defaultValues: {
+      seo: {
+        temperature: userConfiguration?.seo.temperature ?? defaultValues.seo.temperature,
+        useImages: userConfiguration?.seo.useImages ?? defaultValues.seo.useImages,
+        bannedWords: userConfiguration?.seo.bannedWords ?? defaultValues.seo.bannedWords
+      },
+      image: {
+        rotationDirection: userConfiguration?.image.rotationDirection ?? defaultValues.image.rotationDirection,
+        rotationDegrees: userConfiguration?.image.rotationDegrees ?? defaultValues.image.rotationDegrees,
+        flipImage: userConfiguration?.image.flipImage ?? defaultValues.image.flipImage,
+        enableWatermark: userConfiguration?.image.enableWatermark ?? defaultValues.image.enableWatermark,
+        watermarkImage: userConfiguration?.image.watermarkImage ?? defaultValues.image.watermarkImage
+      }
+    },
+    onSubmit: async ({ formApi, value }) => {
       try {
         // Validate with Zod before submitting
         const validatedData = ConfigurationValidation.validateConfigurationForm(value);
         
-        if (onSave) {
-          // Use legacy save handler if provided
-          await onSave(validatedData);
-        } else {
-          // Use TanStack Query mutations
-          if (isEditing && configurationId) {
-            await updateMutation.mutateAsync({
-              id: configurationId,
-              data: validatedData
-            });
-          } else {
-            await createMutation.mutateAsync(validatedData);
-          }
-        }
+        // Save configuration via Firestore
+        await configurationMutation.mutateAsync(validatedData);
+        
+        // Reset form state after successful save
+        formApi.reset();
         
         handleClose();
       } catch (error) {
@@ -122,8 +113,17 @@ export function ConfigurationModal({
     onClose();
   }, [form, onClose]);
 
-  // Use Subscribe to watch form values for banned words state
-  const [currentBannedWords, setCurrentBannedWords] = useState<string[]>([...DEFAULT_BANNED_WORDS]);
+  // Initialize banned words state from query data or defaults
+  const [currentBannedWords, setCurrentBannedWords] = useState<string[]>(
+    userConfiguration?.seo.bannedWords ?? defaultValues.seo.bannedWords
+  );
+
+  // Update banned words state when query data changes
+  useEffect(() => {
+    if (userConfiguration && !isLoading) {
+      setCurrentBannedWords(userConfiguration.seo.bannedWords);
+    }
+  }, [userConfiguration, isLoading]);
 
   const addBannedWord = useCallback((): void => {
     const trimmedWord = newBannedWord.trim().toLowerCase();
@@ -159,15 +159,36 @@ export function ConfigurationModal({
       <DialogDescription>{content.Modal.description}</DialogDescription>
 
       <DialogBody>
-        <form
-          id="configuration-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            form.handleSubmit();
-          }}
-          className="space-y-8"
-        >
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-8">
+            <div className="flex items-center space-x-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              <Text>Loading configuration...</Text>
+            </div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4 mb-6">
+            <Text className="text-red-800 dark:text-red-200">
+              Failed to load configuration: {error instanceof Error ? error.message : 'Unknown error'}
+            </Text>
+          </div>
+        )}
+
+        {/* Configuration Form */}
+        {!isLoading && (
+          <form
+            id="configuration-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              form.handleSubmit();
+            }}
+            className="space-y-8"
+          >
           {/* SEO Configuration Section */}
           <Fieldset>
             <Heading level={3}>{content.SeoSection.title}</Heading>
@@ -399,7 +420,8 @@ export function ConfigurationModal({
               </form.Subscribe>
             </div>
           </Fieldset>
-        </form>
+          </form>
+        )}
       </DialogBody>
 
       <DialogActions>
@@ -413,13 +435,13 @@ export function ConfigurationModal({
             <Button
               type="submit"
               form="configuration-form"
-              disabled={!canSubmit || isFormSubmitting || activeMutation.isPending}
+              disabled={isLoading || !canSubmit || isFormSubmitting || configurationMutation.isPending}
               color="blue"
             >
-              {(isFormSubmitting || activeMutation.isPending) 
+              {(isFormSubmitting || configurationMutation.isPending) 
                 ? 'Saving...' 
-                : isEditing 
-                  ? 'Update Configuration'
+                : isLoading
+                  ? 'Loading...'
                   : content.Form.saveButton
               }
             </Button>
