@@ -111,22 +111,3 @@ export function useProductCategorization() {
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
   });
 }
-
-/**
- * Hook for prefetching categorization data (if needed for SSR or preloading)
- */
-export function usePrefetchCategorization() {
-  const queryClient = useQueryClient();
-
-  return {
-    prefetchCategorization: async (products: CategoryRequestItem[]) => {
-      // This could be used to prefetch categorization results
-      // For now, it's a placeholder for future SSR needs
-      await queryClient.prefetchQuery({
-        queryKey: ['product-categorization', products],
-        queryFn: () => submitProductCategorization(products),
-        staleTime: 1000 * 60 * 5, // 5 minutes
-      });
-    }
-  };
-}

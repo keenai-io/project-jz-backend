@@ -11,7 +11,18 @@ vi.mock('@/auth', () => ({
   signOut: vi.fn(),
 }));
 
+// Mock the server logger
+vi.mock('@lib/logger.server', () => ({
+  serverLogger: {
+    error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+  },
+}));
+
 import { signOut } from '@/auth';
+import { serverLogger } from '@lib/logger.server';
 
 /**
  * Test suite for authentication server actions
@@ -21,6 +32,7 @@ import { signOut } from '@/auth';
  */
 describe('Auth Server Actions', () => {
   const mockSignOut = vi.mocked(signOut);
+  const mockServerLogger = vi.mocked(serverLogger);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -53,6 +65,11 @@ describe('Auth Server Actions', () => {
       expect(mockSignOut).toHaveBeenCalledWith({
         redirectTo: '/signin'
       });
+      expect(mockServerLogger.error).toHaveBeenCalledWith(
+        'Sign out error',
+        signOutError,
+        'auth'
+      );
     });
 
     /**
