@@ -12,7 +12,8 @@
     "test:coverage": "vitest --coverage",
     "test:ui": "vitest --ui",
     "type-check": "tsc --noEmit",
-    "intlayer:build": "node node_modules/intlayer-cli/dist/cjs/index.cjs build"
+    "intlayer:build": "node node_modules/intlayer-cli/dist/cjs/index.cjs build",
+    "setup:firestore": "node scripts/setup-firestore.js"
   },
   "dependencies": {
     "@auth/firebase-adapter": "^2.10.0",

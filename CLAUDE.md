@@ -948,6 +948,152 @@ const envSchema = z.object({
 });
 ```
 
+#### Firebase Authentication Setup (MANDATORY FOR PRODUCTION)
+
+This project uses Firebase/Firestore as the Auth.js adapter for persistent user data. **CRITICAL**: Proper Firebase configuration is required for authentication to work.
+
+##### Firebase Configuration Requirements
+
+- **MUST have a Firebase project** with Firestore database enabled
+- **MUST have proper service account credentials** configured
+- **MUST run Firestore setup** to create required collections
+
+##### Firestore Adapter Configuration
+
+```typescript
+// auth.ts
+import { FirestoreAdapter } from "@auth/firebase-adapter"
+import { initializeApp, getApps, cert, applicationDefault } from "firebase-admin/app"
+import { getFirestore } from "firebase-admin/firestore"
+
+// Initialize Firebase Admin if not already initialized
+if (getApps().length === 0) {
+  const hasFirebaseEnvVars = process.env.FIREBASE_PROJECT_ID && 
+                             process.env.FIREBASE_CLIENT_EMAIL && 
+                             process.env.FIREBASE_PRIVATE_KEY;
+
+  if (hasFirebaseEnvVars) {
+    initializeApp({
+      credential: cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      }),
+    })
+  } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    initializeApp({
+      credential: applicationDefault(),
+    })
+  }
+}
+
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  adapter: FirestoreAdapter(getFirestore()),
+  // ... other config
+})
+```
+
+##### Environment Variables for Firebase
+
+```bash
+# Method 1: Individual environment variables (recommended for production)
+FIREBASE_PROJECT_ID=your-firebase-project-id
+FIREBASE_CLIENT_EMAIL=your-firebase-client-email
+FIREBASE_PRIVATE_KEY=your-firebase-private-key
+FIRESTORE_DATABASE_ID=(default)  # Optional: specify database ID, defaults to "(default)"
+
+# Method 2: Service account credentials file (good for development)
+GOOGLE_APPLICATION_CREDENTIALS=./credentials.json
+FIRESTORE_DATABASE_ID=your-database-id  # Optional: if using non-default database
+```
+
+##### Firebase Setup Commands
+
+```bash
+# Install dotenv if not already present (required for setup script)
+npm install --save-dev dotenv
+
+# Setup Firestore collections for Auth.js
+npm run setup:firestore
+
+# Verify your Firebase configuration
+npm run type-check  # Should pass without Firebase credential errors
+```
+
+##### Troubleshooting Firebase Authentication Errors
+
+**Common Error**: `Error: 5 NOT_FOUND` - Firestore database not found
+
+**Solutions**:
+1. **Verify Firebase project exists and has Firestore enabled**:
+   - Go to Firebase Console > Project Settings
+   - Ensure Firestore Database is created (not just Realtime Database)
+   - Note the database ID (usually "(default)" for first database)
+
+2. **Create Firestore Database if missing**:
+   - Go to Firebase Console > Firestore Database
+   - Click "Create database"
+   - Choose security rules (test mode for development)
+   - Select a location (cannot be changed later)
+
+3. **Check database ID configuration**:
+   ```bash
+   # In your .env.local file, specify the correct database ID
+   FIRESTORE_DATABASE_ID=(default)  # or your specific database ID
+   ```
+
+4. **Verify credentials are properly configured**:
+   ```bash
+   # Test Firebase connection with environment variables loaded
+   node -r dotenv/config -e "console.log('Project:', process.env.FIREBASE_PROJECT_ID); console.log('Database:', process.env.FIRESTORE_DATABASE_ID || '(default)');" dotenv_config_path=.env.local
+   ```
+
+5. **Run Firestore setup script with environment variables**:
+   ```bash
+   # The setup script now loads .env.local automatically
+   npm run setup:firestore
+   
+   # Or run directly with environment variables
+   GOOGLE_APPLICATION_CREDENTIALS=./credentials.json npm run setup:firestore
+   ```
+
+6. **Verify service account permissions**:
+   - Service account needs "Firestore Service Agent" role
+   - Go to Firebase Console > IAM & Admin > IAM
+   - Check that your service account has proper permissions
+
+7. **Check for multiple databases**:
+   - If you have multiple Firestore databases in your project
+   - Ensure `FIRESTORE_DATABASE_ID` matches the exact database ID
+   - Database IDs are case-sensitive
+
+**Common Error**: `AdapterError` with Firebase connection failures
+
+**Solutions**:
+1. **Check network connectivity** to Firebase endpoints
+2. **Verify private key format** (newlines properly escaped)
+3. **Ensure project ID matches** your Firebase project exactly
+4. **Check for quota limits** in Firebase Console
+
+##### Required Firestore Collections
+
+Auth.js requires these collections (automatically created by setup script):
+- `users` - Store user profile information
+- `accounts` - Store linked OAuth provider accounts
+- `sessions` - Store active user sessions
+- `verification_tokens` - Store email verification tokens
+
+##### Development vs Production Setup
+
+**Development**:
+- Use `credentials.json` file for simplicity
+- Set `GOOGLE_APPLICATION_CREDENTIALS=./credentials.json`
+
+**Production**:
+- Use individual environment variables for security
+- Never commit `credentials.json` to repository
+- Use encrypted secrets in deployment platform
+
 ## 🔐 Security Requirements (MANDATORY)
 
 ### Input Validation (MUST IMPLEMENT ALL)
