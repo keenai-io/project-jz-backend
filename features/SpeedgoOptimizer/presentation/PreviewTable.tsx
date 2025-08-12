@@ -21,7 +21,7 @@ export default function PreviewTable({rows}: { rows: RowData[] }) {
       {table.getHeaderGroups().map(headerGroup => (
         <tr key={headerGroup.id} className="bg-gray-100">
           {headerGroup.headers.map(header => (
-            <th key={header.id} className="border border-gray-300 px-2 py-1 text-center whitespace-nowrap">
+            <th key={header.id} className="border border-gray-300 px-2 py-1 text-center whitespace-nowrap text-gray-900 font-semibold">
               {header.column.columnDef.header as string}
             </th>
           ))}
@@ -32,7 +32,7 @@ export default function PreviewTable({rows}: { rows: RowData[] }) {
       {table.getRowModel().rows.map(row => (
         <tr key={row.id} className="even:bg-gray-50">
           {row.getVisibleCells().map(cell => (
-            <td key={cell.id} className="border border-gray-300 px-2 py-1 whitespace-nowrap">
+            <td key={cell.id} className="border border-gray-300 px-2 py-1 whitespace-nowrap text-gray-900">
               {cell.getValue() as string}
             </td>
           ))}

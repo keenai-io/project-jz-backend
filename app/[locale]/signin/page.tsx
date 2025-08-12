@@ -24,28 +24,59 @@ function SignInForm(): ReactElement {
   };
 
   return (
-    <div className="w-full max-w-sm">
-      <div className="text-center">
-        <Heading level={1}>{content.title.value}</Heading>
-        <Text className="mt-2 text-zinc-500">{content.subtitle.value}</Text>
+    <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border-2 border-gray-200 p-8 sm:p-10">
+      {/* Logo Section */}
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center gap-2 mb-6">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm">M</span>
+          </div>
+          <span className="text-xl font-semibold text-gray-900">{content.brandName.value}</span>
+        </div>
+        <Heading level={1} className="text-2xl font-bold text-gray-900 mb-2">
+          {content.title.value}
+        </Heading>
+        <Text className="text-gray-600">{content.subtitle.value}</Text>
       </div>
 
-      <div className="mt-8 space-y-4">
-        <form action={handleAuthenticate}>
+      {/* Sign In Form */}
+      <div className="space-y-6">
+        <form action={handleAuthenticate} className="w-full">
           <Button
             type="submit"
-            className="w-full"
-            color="indigo"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-xl py-3 px-4 text-base font-semibold transition-colors duration-200 cursor-pointer"
           >
             {content.signInWithGoogle.value}
           </Button>
         </form>
       </div>
 
-      <div className="mt-8 text-center">
-        <Link href="/" className="text-sm text-zinc-500 hover:text-zinc-700">
-          {content.backToHome.value}
-        </Link>
+    </div>
+  );
+}
+
+/**
+ * Loading fallback component for sign in page
+ */
+function SignInLoading(): ReactElement {
+  const content = useIntlayer<'signin'>('signin');
+  
+  return (
+    <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border-2 border-gray-200 p-8 sm:p-10">
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center gap-2 mb-6">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm">M</span>
+          </div>
+          <span className="text-xl font-semibold text-gray-900">{content.brandName.value}</span>
+        </div>
+        <Heading level={1} className="text-2xl font-bold text-gray-900 mb-2">
+          {content.title.value}
+        </Heading>
+        <div className="flex items-center justify-center mt-4">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          <Text className="ml-2 text-gray-600">{content.loading.value}</Text>
+        </div>
       </div>
     </div>
   );
@@ -60,14 +91,7 @@ function SignInForm(): ReactElement {
 export default function SignInPage(): ReactElement {
   return (
     <AuthLayout>
-      <Suspense fallback={
-        <div className="w-full max-w-sm">
-          <div className="text-center">
-            <Heading level={1}>Sign In</Heading>
-            <Text className="mt-2 text-zinc-500">Loading...</Text>
-          </div>
-        </div>
-      }>
+      <Suspense fallback={<SignInLoading />}>
         <SignInForm />
       </Suspense>
     </AuthLayout>

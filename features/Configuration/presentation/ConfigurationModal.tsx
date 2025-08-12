@@ -155,26 +155,40 @@ export function ConfigurationModal({
 
   return (
     <Dialog open={isOpen} onClose={handleClose} size="4xl">
-      <DialogTitle>{content.Modal.title}</DialogTitle>
-      <DialogDescription>{content.Modal.description}</DialogDescription>
+      <DialogTitle className="text-2xl font-bold text-gray-900">{content.Modal.title}</DialogTitle>
+      <DialogDescription className="text-gray-600 mt-2">{content.Modal.description}</DialogDescription>
 
-      <DialogBody>
+      <DialogBody className="space-y-8">
         {/* Loading State */}
         {isLoading && (
-          <div className="flex items-center justify-center py-8">
-            <div className="flex items-center space-x-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-              <Text>Loading configuration...</Text>
+          <div className="flex items-center justify-center py-12">
+            <div className="bg-white rounded-2xl border-2 border-gray-200 p-8 shadow-sm">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+                <Text className="text-gray-600">Loading configuration...</Text>
+              </div>
             </div>
           </div>
         )}
 
         {/* Error State */}
         {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-4 mb-6">
-            <Text className="text-red-800 dark:text-red-200">
-              Failed to load configuration: {error instanceof Error ? error.message : 'Unknown error'}
-            </Text>
+          <div className="bg-red-50 border-2 border-red-200 rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
+                <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-red-800 font-semibold">Configuration Error</h3>
+                <Text className="text-red-600">
+                  Failed to load configuration: {error instanceof Error ? error.message : 'Unknown error'}
+                </Text>
+              </div>
+            </div>
           </div>
         )}
 
@@ -190,11 +204,21 @@ export function ConfigurationModal({
             className="space-y-8"
           >
           {/* SEO Configuration Section */}
-          <Fieldset>
-            <Heading level={3}>{content.SeoSection.title}</Heading>
-            <Text className="text-zinc-600 dark:text-zinc-400 mb-4">
-              {content.SeoSection.description}
-            </Text>
+          <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 shadow-sm">
+            <Fieldset>
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <Heading level={3} className="text-xl font-semibold text-gray-900">{content.SeoSection.title}</Heading>
+                  <Text className="text-gray-600 mt-1">
+                    {content.SeoSection.description}
+                  </Text>
+                </div>
+              </div>
 
             <div className="space-y-6">
               {/* Temperature Slider */}
@@ -302,14 +326,25 @@ export function ConfigurationModal({
                 </Button>
               </div>
             </div>
-          </Fieldset>
+            </Fieldset>
+          </div>
 
           {/* Image Configuration Section */}
-          <Fieldset>
-            <Heading level={3}>{content.ImageSection.title}</Heading>
-            <Text className="text-zinc-600 dark:text-zinc-400 mb-4">
-              {content.ImageSection.description}
-            </Text>
+          <div className="bg-white rounded-2xl border-2 border-gray-200 p-6 shadow-sm">
+            <Fieldset>
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <Heading level={3} className="text-xl font-semibold text-gray-900">{content.ImageSection.title}</Heading>
+                  <Text className="text-gray-600 mt-1">
+                    {content.ImageSection.description}
+                  </Text>
+                </div>
+              </div>
 
             <div className="space-y-6">
               {/* Rotation Direction */}
@@ -419,13 +454,18 @@ export function ConfigurationModal({
                 )}
               </form.Subscribe>
             </div>
-          </Fieldset>
+            </Fieldset>
+          </div>
           </form>
         )}
       </DialogBody>
 
-      <DialogActions>
-        <Button plain onClick={handleClose}>
+      <DialogActions className="bg-gray-50 rounded-b-2xl border-t border-gray-200 px-6 py-4 flex justify-end space-x-3">
+        <Button 
+          plain 
+          onClick={handleClose}
+          className="px-6 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-colors"
+        >
           {content.Form.cancelButton}
         </Button>
         <form.Subscribe
@@ -436,7 +476,7 @@ export function ConfigurationModal({
               type="submit"
               form="configuration-form"
               disabled={isLoading || !canSubmit || isFormSubmitting || configurationMutation.isPending}
-              color="blue"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {(isFormSubmitting || configurationMutation.isPending) 
                 ? 'Saving...' 

@@ -3,6 +3,10 @@ import { type Dictionary, t } from "intlayer";
 const signinContent = {
   key: "signin",
   content: {
+    brandName: t({
+      en: "MarketplaceAI",
+      ko: "마켓플레이스AI",
+    }),
     title: t({
       en: "Sign In",
       ko: "로그인",
@@ -14,6 +18,10 @@ const signinContent = {
     signInWithGoogle: t({
       en: "Sign in with Google",
       ko: "Google로 로그인",
+    }),
+    loading: t({
+      en: "Loading...",
+      ko: "로딩 중...",
     }),
     or: t({
       en: "or",

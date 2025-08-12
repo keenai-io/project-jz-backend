@@ -8,6 +8,18 @@ const pageContent = {
         en: "Drag and Drop to Upload, or click to select files",
         ko: "드래그 및 드롭으로 업로드하거나 클릭하여 파일을 선택하세요",
       }),
+      dragDropTitle: t({
+        en: "Drag and Drop to Upload",
+        ko: "드래그 앤 드롭으로 업로드"
+      }),
+      uploadButtonText: t({
+        en: "Upload from Device",
+        ko: "기기에서 업로드"
+      }),
+      fileTypeNote: t({
+        en: "Speedgo Transmitter output Excel files only",
+        ko: "Speedgo Transmitter 출력 Excel 파일만 가능"
+      }),
       processMessage: t({
         en: "Optimize products and prepare for upload into Speedgo Transmitter",
         ko: "제품을 최적화하고 Speedgo Transmitter에 업로드할 준비를 하세요"
@@ -46,6 +58,18 @@ const pageContent = {
       addMoreFiles: t({
         en: "+ Add more files ({remaining} remaining)",
         ko: "+ 더 많은 파일 추가 ({remaining}개 남음)"
+      }),
+      filesReadyTitle: t({
+        en: "Files Ready",
+        ko: "파일 준비 완료"
+      }),
+      currentlyPreviewing: t({
+        en: "Currently previewing",
+        ko: "현재 미리보기 중"
+      }),
+      clickToPreview: t({
+        en: "Click to preview", 
+        ko: "클릭하여 미리보기"
       }),
       previewTitle: t({
         en: "Preview: {fileName} (first 100 rows)",
