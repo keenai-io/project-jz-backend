@@ -3,7 +3,7 @@ import Google from "next-auth/providers/google"
 import { authConfig } from "./auth.config"
 import { FirestoreAdapter } from "@auth/firebase-adapter"
 import { initializeApp, getApps, cert, applicationDefault } from "firebase-admin/app"
-import { getFirestore } from "firebase-admin/firestore"
+import { getFirestoreInstance } from "@lib/firestore"
 
 // Initialize Firebase Admin if not already initialized
 function getFirebaseApp() {
@@ -35,9 +35,12 @@ function getFirebaseApp() {
   }
 }
 
+// Ensure Firebase is initialized before creating the adapter
+getFirebaseApp()
+
 export const { handlers, signIn, signOut, auth } = NextAuth({
   ...authConfig,
-  adapter: FirestoreAdapter(getFirestore(getFirebaseApp(), process.env.FIRESTORE_DATABASE_ID || '(default)')),
+  adapter: FirestoreAdapter(getFirestoreInstance()),
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID!,

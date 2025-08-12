@@ -26,7 +26,7 @@ const serverLogEnv = serverLogEnvSchema.parse({
 /**
  * Type-safe logging interface with branded types for different log contexts
  */
-export type LogContext = 'api' | 'auth' | 'db' | 'file' | 'categorization' | 'ui' | 'system';
+export type LogContext = 'api' | 'auth' | 'db' | 'file' | 'categorization' | 'ui' | 'system' | 'configuration';
 
 /**
  * Custom log format for development with colors

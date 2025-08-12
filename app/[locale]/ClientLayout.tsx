@@ -1,7 +1,6 @@
 'use client'
 
 import { ReactElement, ReactNode, useState, useCallback, MouseEvent, useTransition } from 'react';
-import { QueryProvider } from '@/app/components/providers/QueryProvider';
 import { QueryErrorBoundary } from '@/app/components/error-boundaries/QueryErrorBoundary';
 import { StackedLayout } from "@components/ui/stacked-layout";
 import { Navbar, NavbarDivider, NavbarItem, NavbarSection, NavbarSpacer } from "@components/ui/navbar";
@@ -120,7 +119,6 @@ export function ClientLayout({ children }: ClientLayoutProps): ReactElement {
   }
 
   return (
-      <QueryProvider>
         <QueryErrorBoundary>
         <StackedLayout
         key={locale}
@@ -154,7 +152,7 @@ export function ClientLayout({ children }: ClientLayoutProps): ReactElement {
               <Dropdown>
                 <DropdownButton as={NavbarItem}>
                   <Avatar 
-                    src={session?.user?.image || "/profile-photo.jpg"} 
+                    src={session?.user?.image || undefined} 
                     initials={session?.user?.name?.charAt(0) || 'U'}
                     square 
                   />
@@ -195,7 +193,7 @@ export function ClientLayout({ children }: ClientLayoutProps): ReactElement {
               <Dropdown>
                 <DropdownButton as={SidebarItem} className="lg:mb-2.5">
                   <Avatar 
-                    src={session?.user?.image || "/icon.png"} 
+                    src={session?.user?.image || "/icon.png"}
                     initials={session?.user?.name?.charAt(0) || 'U'}
                   />
                   <Text className="truncate">{session?.user?.name || 'User'}</Text>
@@ -232,6 +230,5 @@ export function ClientLayout({ children }: ClientLayoutProps): ReactElement {
         />
       )}
         </QueryErrorBoundary>
-      </QueryProvider>
   );
 }
