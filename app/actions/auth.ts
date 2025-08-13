@@ -1,19 +1,17 @@
 'use server'
 
-import { signOut } from '@/auth';
 import { serverLogger } from '@lib/logger.server';
+import { AuthService } from '@features/Auth/server';
 
 /**
  * Server action to sign out the current user
  * 
- * Uses NextAuth's signOut function to end the user session
- * and redirect to the sign-in page.
+ * Delegates to AuthService for business logic.
  */
 export async function signOutAction(): Promise<void> {
   try {
-    await signOut({
-      redirectTo: '/signin'
-    });
+    // Delegate to AuthService for business logic
+    await AuthService.signOut();
   } catch (error) {
     // NextAuth signOut throws redirect errors as part of normal operation
     // Check if it's a NEXT_REDIRECT error which is expected

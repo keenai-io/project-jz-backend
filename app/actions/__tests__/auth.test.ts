@@ -6,9 +6,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { signOutAction } from '../auth';
 
-// Mock the NextAuth signOut function
-vi.mock('@/auth', () => ({
-  signOut: vi.fn(),
+// Mock the AuthService
+vi.mock('@features/Auth/server', () => ({
+  AuthService: {
+    signOut: vi.fn(),
+  },
 }));
 
 // Mock the server logger
@@ -21,7 +23,7 @@ vi.mock('@lib/logger.server', () => ({
   },
 }));
 
-import { signOut } from '@/auth';
+import { AuthService } from '@features/Auth/server';
 import { serverLogger } from '@lib/logger.server';
 
 /**
@@ -31,7 +33,7 @@ import { serverLogger } from '@lib/logger.server';
  * successful signout and error handling.
  */
 describe('Auth Server Actions', () => {
-  const mockSignOut = vi.mocked(signOut);
+  const mockAuthService = vi.mocked(AuthService);
   const mockServerLogger = vi.mocked(serverLogger);
 
   beforeEach(() => {
@@ -42,15 +44,12 @@ describe('Auth Server Actions', () => {
     /**
      * Tests successful signout
      */
-    it('should call NextAuth signOut with correct redirect', async () => {
-      mockSignOut.mockResolvedValue(undefined);
+    it('should call AuthService signOut', async () => {
+      mockAuthService.signOut.mockResolvedValue(undefined);
 
       await signOutAction();
 
-      expect(mockSignOut).toHaveBeenCalledWith({
-        redirectTo: '/signin'
-      });
-      expect(mockSignOut).toHaveBeenCalledTimes(1);
+      expect(mockAuthService.signOut).toHaveBeenCalledTimes(1);
     });
 
     /**
@@ -58,13 +57,11 @@ describe('Auth Server Actions', () => {
      */
     it('should handle signout errors correctly', async () => {
       const signOutError = new Error('Network error');
-      mockSignOut.mockRejectedValue(signOutError);
+      mockAuthService.signOut.mockRejectedValue(signOutError);
 
       await expect(signOutAction()).rejects.toThrow('Failed to sign out');
       
-      expect(mockSignOut).toHaveBeenCalledWith({
-        redirectTo: '/signin'
-      });
+      expect(mockAuthService.signOut).toHaveBeenCalledTimes(1);
       expect(mockServerLogger.error).toHaveBeenCalledWith(
         'Sign out error',
         signOutError,
