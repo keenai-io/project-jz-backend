@@ -12,6 +12,7 @@ export {UploadedFilesList} from "@features/SpeedgoOptimizer/presentation/Uploade
 export {FileProcessingSection} from "@features/SpeedgoOptimizer/presentation/FileProcessingSection"
 export {FileViewerSection} from "@features/SpeedgoOptimizer/presentation/FileViewerSection"
 export {CategorizationResultsSection} from "@features/SpeedgoOptimizer/presentation/CategorizationResultsSection"
+export {IndividualFileStatusSection} from "@features/SpeedgoOptimizer/presentation/IndividualFileStatusSection"
 
 // Hooks
 export {useProductCategorization} from "@features/SpeedgoOptimizer/hooks/useProductCategorization"

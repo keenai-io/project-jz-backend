@@ -34,10 +34,10 @@ export function FileProcessingSection({
     <div className="flex flex-col justify-center items-center text-center space-y-6 p-4">
       <div className="space-y-4">
         <h2 className="text-xl sm:text-2xl font-bold text-gray-900 leading-tight">
-          {content.processMessage}
+          {content.processMessage.value}
         </h2>
         <Text className="text-gray-600">
-          {content.description}
+          {content.description.value}
         </Text>
       </div>
       
@@ -46,7 +46,7 @@ export function FileProcessingSection({
         disabled={isProcessing || fileCount === 0}
         className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 text-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isProcessing ? content.processingButton : content.processButton}
+        {isProcessing ? content.processingButton.value : content.processButton.value}
       </Button>
       
       {processingResult && (

@@ -1,15 +1,17 @@
 'use client'
 
-import { ReactElement } from 'react';
+import { ReactElement, useState } from 'react';
 import {
   FileUploadArea,
   UploadedFilesList,
   FileProcessingSection,
   FileViewerSection,
   CategorizationResultsSection,
+  IndividualFileStatusSection,
   useFileManagement,
   useFileProcessing
 } from '@features/SpeedgoOptimizer';
+import { CategoryResponseItem } from '@features/SpeedgoOptimizer/domain/schemas/CategoryResponse';
 
 /**
  * Home Page Component
@@ -31,12 +33,26 @@ export default function Home(): ReactElement {
   const {
     processingResult,
     categorizationResults,
+    individualResults,
     isProcessing,
     handleProcessFiles
   } = useFileProcessing();
 
+  // State for selected file results display
+  const [selectedFileResults, setSelectedFileResults] = useState<CategoryResponseItem[] | null>(null);
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+
   // Wrapper function to pass files to the processing hook
   const onProcessFiles = () => handleProcessFiles(files);
+
+  // Handler for clicking on individual file results
+  const handleFileResultClick = (fileName: string, results: CategoryResponseItem[]): void => {
+    setSelectedFileName(fileName);
+    setSelectedFileResults(results);
+  };
+
+  // Determine which results to show in the categorization table
+  const displayResults = selectedFileResults || categorizationResults;
 
   return (
     <>
@@ -76,9 +92,24 @@ export default function Home(): ReactElement {
         previewRows={previewRows}
       />
 
+      {/* Individual File Status Section */}
+      {individualResults && individualResults.length > 0 && (
+        <IndividualFileStatusSection 
+          individualResults={individualResults}
+          onFileResultClick={handleFileResultClick}
+        />
+      )}
+
       {/* Categorization Results Section */}
-      {categorizationResults && categorizationResults.length > 0 && (
-        <CategorizationResultsSection results={categorizationResults} />
+      {displayResults && displayResults.length > 0 && (
+        <CategorizationResultsSection 
+          results={displayResults}
+          selectedFileName={selectedFileName}
+          onClearSelection={() => {
+            setSelectedFileResults(null);
+            setSelectedFileName(null);
+          }}
+        />
       )}
     </>
   )

@@ -8,12 +8,12 @@ const fileProcessingSectionContent = {
       ko: "제품을 최적화하고 Speedgo Transmitter에 업로드할 준비를 하세요"
     }),
     description: t({
-      en: "All files will be processed together (up to 3000 total records)",
-      ko: "모든 파일이 함께 처리됩니다 (총 3000개 레코드까지)"
+      en: "Process your Excel files to categorize products and enhance keywords for better marketplace performance.",
+      ko: "Excel 파일을 처리하여 제품을 분류하고 키워드를 향상시켜 마켓플레이스 성능을 개선하세요."
     }),
     processButton: t({
-      en: "Process",
-      ko: "처리"
+      en: "Process Files",
+      ko: "파일 처리"
     }),
     processingButton: t({
       en: "Processing...",

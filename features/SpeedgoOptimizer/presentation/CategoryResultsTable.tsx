@@ -17,10 +17,8 @@
 import { ColumnDef, getCoreRowModel, useReactTable, getSortedRowModel, SortingState } from "@tanstack/react-table";
 import { CategoryResponseItem } from "@features/SpeedgoOptimizer/domain/schemas/CategoryResponse";
 import { useState, ReactElement } from "react";
-import { ChevronUpIcon, ChevronDownIcon, ArrowDownTrayIcon } from "@heroicons/react/16/solid";
-import { exportCategorizationResultsToExcel, isExportSupported, getEstimatedExportSize, formatFileSize } from "@features/SpeedgoOptimizer/application/exportCategorizationResults";
-import { Button } from "@components/ui/button";
-import clientLogger from "@/lib/logger.client";
+import { ChevronUpIcon, ChevronDownIcon } from "@heroicons/react/16/solid";
+import { useIntlayer } from 'next-intlayer';
 
 interface CategoryResultsTableProps {
   /** Array of categorization results to display */
@@ -38,44 +36,7 @@ export default function CategoryResultsTable({
   onProductSelect 
 }: CategoryResultsTableProps): ReactElement {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [isExporting, setIsExporting] = useState(false);
-
-  /**
-   * Handles the export button click
-   * Exports the categorization results to Excel format
-   */
-  const handleExport = async (): Promise<void> => {
-    if (isExporting || results.length === 0) return;
-
-    setIsExporting(true);
-    
-    try {
-      clientLogger.info('Starting categorization results export', 'ui', {
-        resultCount: results.length,
-        estimatedSize: formatFileSize(getEstimatedExportSize(results))
-      });
-
-      await exportCategorizationResultsToExcel(results, {
-        filename: 'categorization-results',
-        includeTimestamp: true
-      });
-
-      clientLogger.info('Export completed successfully', 'ui', {
-        resultCount: results.length
-      });
-
-    } catch (error) {
-      const errorObj = error instanceof Error ? error : new Error('Unknown export error');
-      clientLogger.error('Export failed in CategoryResultsTable', errorObj, 'ui', {
-        resultCount: results.length
-      });
-      
-      // Could show a toast notification here in the future
-      console.error('Export failed:', errorObj.message);
-    } finally {
-      setIsExporting(false);
-    }
-  };
+  const content = useIntlayer<'category-results-table'>('category-results-table');
 
   // Define columns with proper typing and formatting
   const columns: ColumnDef<CategoryResponseItem>[] = [
@@ -86,7 +47,7 @@ export default function CategoryResultsTable({
           className="flex items-center gap-1 font-semibold hover:bg-gray-50 px-2 py-1 rounded"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Product #
+          {content.columns.productNumber}
           {column.getIsSorted() === "asc" ? (
             <ChevronUpIcon className="h-4 w-4" />
           ) : column.getIsSorted() === "desc" ? (
@@ -102,7 +63,7 @@ export default function CategoryResultsTable({
     },
     {
       accessorKey: 'original_product_name',
-      header: 'Original Product Name',
+      header: content.columns.originalName.value,
       cell: ({ getValue }) => (
         <div className="max-w-xs">
           <div className="truncate text-sm" title={getValue() as string}>
@@ -113,7 +74,7 @@ export default function CategoryResultsTable({
     },
     {
       accessorKey: 'product_name',
-      header: 'Optimized Product Name',
+      header: content.columns.optimizedName.value,
       cell: ({ getValue }) => (
         <div className="max-w-xs">
           <div className="truncate text-sm font-medium text-green-800" title={getValue() as string}>
@@ -124,7 +85,7 @@ export default function CategoryResultsTable({
     },
     {
       accessorKey: 'matched_categories',
-      header: 'Categories',
+      header: content.columns.categories.value,
       cell: ({ getValue }) => {
         const categories = getValue() as string[];
         return (
@@ -139,7 +100,7 @@ export default function CategoryResultsTable({
             ))}
             {categories.length > 2 && (
               <span className="inline-block px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">
-                +{categories.length - 2} more
+                {content.moreCategories.value.replace('{count}', (categories.length - 2).toString())}
               </span>
             )}
           </div>
@@ -148,7 +109,7 @@ export default function CategoryResultsTable({
     },
     {
       accessorKey: 'keywords',
-      header: 'Enhanced Keywords',
+      header: content.columns.keywords.value,
       cell: ({ getValue }) => {
         const keywords = getValue() as string[];
         const displayKeywords = keywords.slice(0, 3);
@@ -158,7 +119,7 @@ export default function CategoryResultsTable({
               {displayKeywords.join(', ')}
               {keywords.length > 3 && (
                 <span className="text-gray-500 ml-1">
-                  (+{keywords.length - 3} more)
+                  ({content.moreKeywords.value.replace('{count}', (keywords.length - 3).toString())})
                 </span>
               )}
             </div>
@@ -168,22 +129,33 @@ export default function CategoryResultsTable({
     },
     {
       accessorKey: 'sales_status',
-      header: 'Status',
+      header: content.columns.status.value,
       cell: ({ getValue }) => {
         const status = getValue() as string;
         const statusColor = status === 'On Sale' 
           ? 'bg-green-100 text-green-800' 
           : 'bg-yellow-100 text-yellow-800';
+        
+        // Translate status text
+        let translatedStatus = status;
+        if (status === 'On Sale') {
+          translatedStatus = content.statusLabels.onSale.value;
+        } else if (status === 'Out of Stock') {
+          translatedStatus = content.statusLabels.outOfStock.value;
+        } else if (status === 'Discontinued') {
+          translatedStatus = content.statusLabels.discontinued.value;
+        }
+        
         return (
           <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${statusColor}`}>
-            {status}
+            {translatedStatus}
           </span>
         );
       },
     },
     {
       accessorKey: 'category_number',
-      header: 'Category ID',
+      header: content.columns.categoryId.value,
       cell: ({ getValue }) => (
         <span className="font-mono text-xs text-gray-600">
           {getValue() as string}
@@ -206,35 +178,17 @@ export default function CategoryResultsTable({
   if (results.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
-        <p>No categorization results to display</p>
+        <p>{content.noResults.value}</p>
       </div>
     );
   }
 
   return (
     <div className="w-full">
-      <div className="mb-4 flex justify-between items-center">
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">
-            Categorization Results ({results.length} products)
-          </h3>
-          <p className="text-sm text-gray-500 mt-1">
-            Estimated export size: {formatFileSize(getEstimatedExportSize(results))}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          {isExportSupported() && (
-            <Button
-              onClick={handleExport}
-              disabled={isExporting || results.length === 0}
-              outline
-              className="flex items-center gap-2"
-            >
-              <ArrowDownTrayIcon className="h-4 w-4" />
-              {isExporting ? 'Exporting...' : 'Export to Excel'}
-            </Button>
-          )}
-        </div>
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold text-gray-900">
+          {content.title.value} ({content.productsCount.value.replace('{count}', results.length.toString())})
+        </h3>
       </div>
       
       <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
@@ -282,7 +236,9 @@ export default function CategoryResultsTable({
       
       <div className="mt-4 text-sm text-gray-600">
         <p>
-          Showing {table.getRowModel().rows.length} of {results.length} products
+          {content.showingResults.value
+            .replace('{count}', table.getRowModel().rows.length.toString())
+            .replace('{total}', results.length.toString())}
         </p>
       </div>
     </div>
