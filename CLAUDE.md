@@ -1232,15 +1232,6 @@ This generates TypeScript types and resolves type errors. The `dev` script inclu
 - Changing content keys
 - Modifying content structure
 
-#### Type Error Resolution
-
-If you encounter `Type '"my-key"' does not satisfy the constraint 'DictionaryKeys'`:
-
-1. **Check content file structure** - Ensure `key` and `content` are properly defined
-2. **Run intlayer build** - `npm run intlayer:build`  
-3. **Add explicit type parameter** - `useIntlayer<'my-key'>('my-key')`
-4. **Verify unique keys** - Content keys must be unique across the application
-
 #### Content File Organization
 
 - **Co-locate content files** with components: `MyComponent.content.ts` next to `MyComponent.tsx`

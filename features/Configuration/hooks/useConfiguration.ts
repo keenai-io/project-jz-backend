@@ -69,8 +69,6 @@ export function useUserConfigurationMutation() {
     },
     onSuccess: () => {
       clientLogger.info('Configuration saved successfully', 'configuration')
-      // Invalidate and refetch configuration data
-      queryClient.invalidateQueries({ queryKey: ['userConfiguration'] })
     },
     onSettled: () => {
       // Always refetch after error or success to ensure we have the latest data

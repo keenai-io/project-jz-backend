@@ -31,7 +31,6 @@ describe('ConfigurationModal Business Logic', () => {
         rotationDegrees: 3,
         flipImage: false,
         enableWatermark: true,
-        watermarkImage: 'watermark.png',
       },
     };
 
@@ -149,7 +148,6 @@ describe('ConfigurationModal Business Logic', () => {
         rotationDegrees: 5,
         flipImage: true,
         enableWatermark: true,
-        watermarkImage: 'very-long-watermark-filename-with-special-chars-123.png',
       },
     };
 

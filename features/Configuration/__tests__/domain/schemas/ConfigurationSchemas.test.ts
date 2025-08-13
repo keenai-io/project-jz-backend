@@ -107,7 +107,6 @@ describe('Configuration Schemas', () => {
           rotationDegrees: 4,
           flipImage: true,
           enableWatermark: true,
-          watermarkImage: 'watermark.png',
         },
       };
 

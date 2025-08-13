@@ -11,8 +11,7 @@ import {Checkbox, CheckboxField} from '@components/ui/checkbox';
 import {Select} from '@components/ui/select';
 import {Text} from '@components/ui/text';
 import {Heading} from '@components/ui/heading';
-import {Fieldset} from '@components/ui/fieldset';
-import {Label} from '@components/ui/fieldset';
+import {Fieldset, Label, Description} from '@components/ui/fieldset';
 import {Badge} from '@components/ui/badge';
 import {XMarkIcon, PlusIcon} from '@heroicons/react/16/solid';
 import {
@@ -72,20 +71,16 @@ export function ConfigurationModal({
         rotationDirection: userConfiguration?.image.rotationDirection ?? defaultValues.image.rotationDirection,
         rotationDegrees: userConfiguration?.image.rotationDegrees ?? defaultValues.image.rotationDegrees,
         flipImage: userConfiguration?.image.flipImage ?? defaultValues.image.flipImage,
-        enableWatermark: userConfiguration?.image.enableWatermark ?? defaultValues.image.enableWatermark,
-        watermarkImage: userConfiguration?.image.watermarkImage ?? defaultValues.image.watermarkImage
+        enableWatermark: userConfiguration?.image.enableWatermark ?? defaultValues.image.enableWatermark
       }
     },
-    onSubmit: async ({ formApi, value }) => {
+    onSubmit: async ({ value }) => {
       try {
         // Validate with Zod before submitting
         const validatedData = ConfigurationValidation.validateConfigurationForm(value);
         
         // Save configuration via Firestore
         await configurationMutation.mutateAsync(validatedData);
-        
-        // Reset form state after successful save
-        formApi.reset();
         
         handleClose();
       } catch (error) {
@@ -385,11 +380,12 @@ export function ConfigurationModal({
                     <Checkbox
                       checked={field.state.value}
                       onChange={field.handleChange}
+                      id="image.flipImage"
                     />
-                    <Label>{content.ImageSection.flipImageLabel}</Label>
-                    <Text data-slot="description" className="text-sm">
+                    <Label htmlFor="image.flipImage">{content.ImageSection.flipImageLabel}</Label>
+                    <Description className="text-sm">
                       {content.ImageSection.flipImageDescription}
-                    </Text>
+                    </Description>
                   </CheckboxField>
                 )}
               </form.Field>
@@ -401,40 +397,16 @@ export function ConfigurationModal({
                     <Checkbox
                       checked={field.state.value}
                       onChange={field.handleChange}
+                      id="image.enableWatermark"
                     />
-                    <Label>{content.ImageSection.watermarkLabel}</Label>
-                    <Text data-slot="description" className="text-sm">
+                    <Label htmlFor="image.enableWatermark">{content.ImageSection.watermarkLabel}</Label>
+                    <Description className="text-sm">
                       {content.ImageSection.watermarkDescription}
-                    </Text>
+                    </Description>
                   </CheckboxField>
                 )}
               </form.Field>
 
-              {/* Watermark Image Upload */}
-              <form.Subscribe
-                selector={(state) => state.values.image.enableWatermark}
-              >
-                {(enableWatermark) => enableWatermark && (
-                  <form.Field name="image.watermarkImage">
-                    {(field) => (
-                      <div>
-                        <Label>{content.ImageSection.watermarkImageLabel}</Label>
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              // In a real app, you'd upload the file and get a URL back
-                              field.handleChange(file.name);
-                            }
-                          }}
-                        />
-                      </div>
-                    )}
-                  </form.Field>
-                )}
-              </form.Subscribe>
             </div>
             </Fieldset>
           </div>

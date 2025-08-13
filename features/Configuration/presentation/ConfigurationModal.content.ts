@@ -110,14 +110,6 @@ const configurationModalContent = {
         en: "Add watermark to processed images",
         ko: "처리된 이미지에 워터마크를 추가합니다",
       }),
-      watermarkImageLabel: t({
-        en: "Watermark Image",
-        ko: "워터마크 이미지",
-      }),
-      uploadWatermarkButton: t({
-        en: "Upload Watermark",
-        ko: "워터마크 업로드",
-      }),
     },
     Validation: {
       temperatureRange: t({

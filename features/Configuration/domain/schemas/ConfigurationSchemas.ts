@@ -42,9 +42,6 @@ export const ImageConfigurationSchema = z.object({
   
   /** Whether to add watermark */
   enableWatermark: z.boolean().default(false),
-  
-  /** Watermark image file (optional) */
-  watermarkImage: z.string().optional(),
 });
 
 export type ImageConfiguration = z.infer<typeof ImageConfigurationSchema>;
