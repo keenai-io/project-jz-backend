@@ -48,7 +48,9 @@ export class ConfigurationService {
     await configRef.set(configDocument, { merge: true })
 
     serverLogger.info('Configuration saved successfully', 'configuration', { 
-      userId: userEmail 
+      userId: userEmail,
+      documentPath: `configurations/${userEmail}`,
+      dataKeys: Object.keys(configDocument)
     })
   }
 
@@ -70,6 +72,13 @@ export class ConfigurationService {
     // Get configuration document
     const configRef = db.collection('configurations').doc(userEmail)
     const configDoc = await configRef.get()
+
+    serverLogger.info('Document fetch result', 'configuration', { 
+      userId: userEmail,
+      documentPath: `configurations/${userEmail}`,
+      exists: configDoc.exists,
+      hasData: !!configDoc.data()
+    })
 
     if (!configDoc.exists) {
       serverLogger.info('No configuration found for user', 'configuration', { 

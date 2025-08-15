@@ -7,14 +7,6 @@
 echo "🔥 Firebase Firestore Rules Deployment"
 echo "======================================"
 
-# Load environment variables from .env.local
-if [ -f ".env.local" ]; then
-    echo "📄 Loading environment variables from .env.local..."
-    export $(grep -v '^#' .env.local | grep -v '^\s*$' | xargs)
-else
-    echo "⚠️  No .env.local file found. Using default database."
-fi
-
 # Get database ID from environment or use default
 DATABASE_ID="${FIRESTORE_DATABASE_ID:-(default)}"
 echo "🗄️  Target database: $DATABASE_ID"
@@ -22,7 +14,8 @@ echo "🗄️  Target database: $DATABASE_ID"
 # Check if Firebase CLI is installed
 if ! command -v firebase &> /dev/null; then
     echo "❌ Firebase CLI is not installed."
-    echo "Install it with: npm install -g firebase-tools"
+    echo "Please ensure firebase-tools is installed from package.json dependencies."
+    echo "Run: npm install"
     exit 1
 fi
 
@@ -53,10 +46,20 @@ firebase projects:list
 
 echo ""
 echo "🚀 Deploying Firestore rules..."
-echo "This will deploy the rules from firestore.rules to database: $DATABASE_ID"
+echo "📄 Rules file: firestore.rules"
+echo "🗄️  Target database: $DATABASE_ID"
+echo ""
 
-# Deploy Firestore rules
-firebase deploy --only firestore:rules
+# Deploy Firestore rules to specific database
+if [ "$DATABASE_ID" != "(default)" ]; then
+    echo "📋 Deploying rules to named database: $DATABASE_ID"
+    echo "⚡ Running: firebase deploy --only firestore:rules:$DATABASE_ID"
+    firebase deploy --only firestore:rules:$DATABASE_ID
+else
+    echo "📋 Deploying rules to default database: $DATABASE_ID"
+    echo "⚡ Running: firebase deploy --only firestore:rules"
+    firebase deploy --only firestore:rules
+fi
 
 if [ $? -eq 0 ]; then
     echo "✅ Firestore rules deployed successfully to database: $DATABASE_ID!"

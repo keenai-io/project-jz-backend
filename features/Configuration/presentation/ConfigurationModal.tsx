@@ -225,7 +225,7 @@ export function ConfigurationModal({
                 {(field) => (
                   <div>
                     <Label>{content.SeoSection.temperatureLabel}</Label>
-                    <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
+                    <Text className="text-sm text-zinc-600 mb-3">
                       {content.SeoSection.temperatureDescription}
                     </Text>
                     <Slider
@@ -248,7 +248,7 @@ export function ConfigurationModal({
               {/* Banned Words */}
               <div>
                 <Label>{content.SeoSection.bannedWordsLabel}</Label>
-                <Text className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
+                <Text className="text-sm text-zinc-600 mb-3">
                   {content.SeoSection.bannedWordsDescription}
                 </Text>
 
@@ -267,6 +267,7 @@ export function ConfigurationModal({
                     onClick={addBannedWord}
                     disabled={!newBannedWord.trim()}
                     color="blue"
+                    className="cursor-pointer"
                   >
                     <PlusIcon/>
                     {content.SeoSection.addWordButton}
@@ -284,10 +285,10 @@ export function ConfigurationModal({
                       <button
                         type="button"
                         onClick={() => removeBannedWord(word)}
-                        className="hover:bg-red-100 dark:hover:bg-red-900 rounded p-0.5 transition-colors"
+                        className="hover:bg-red-100 rounded p-0.5 transition-colors cursor-pointer"
                         aria-label={`${content.SeoSection.removeWordButton} ${word}`}
                       >
-                        <XMarkIcon className="w-3 h-3"/>
+                        <XMarkIcon className="w-3 h-3 cursor-pointer"/>
                       </button>
                     </Badge>
                   ))}
@@ -297,7 +298,7 @@ export function ConfigurationModal({
                   type="button"
                   onClick={resetToDefaultWords}
                   plain
-                  className="text-sm"
+                  className="text-sm cursor-pointer"
                 >
                   {content.SeoSection.resetToDefaultButton}
                 </Button>
@@ -381,6 +382,7 @@ export function ConfigurationModal({
                       checked={field.state.value}
                       onChange={field.handleChange}
                       id="image.flipImage"
+                      className="cursor-pointer"
                     />
                     <Label htmlFor="image.flipImage">{content.ImageSection.flipImageLabel}</Label>
                     <Description className="text-sm">
@@ -398,6 +400,7 @@ export function ConfigurationModal({
                       checked={field.state.value}
                       onChange={field.handleChange}
                       id="image.enableWatermark"
+                      className="cursor-pointer"
                     />
                     <Label htmlFor="image.enableWatermark">{content.ImageSection.watermarkLabel}</Label>
                     <Description className="text-sm">
@@ -418,7 +421,7 @@ export function ConfigurationModal({
         <Button 
           plain 
           onClick={handleClose}
-          className="px-6 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-colors"
+          className="px-6 py-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-colors cursor-pointer"
         >
           {content.Form.cancelButton}
         </Button>
@@ -430,7 +433,7 @@ export function ConfigurationModal({
               type="submit"
               form="configuration-form"
               disabled={isLoading || !canSubmit || isFormSubmitting || configurationMutation.isPending}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
             >
               {(isFormSubmitting || configurationMutation.isPending) 
                 ? 'Saving...' 

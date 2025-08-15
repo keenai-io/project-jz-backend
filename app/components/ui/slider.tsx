@@ -48,12 +48,12 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         {(label || showValue) && (
           <div className="flex justify-between items-center mb-2">
             {label && (
-              <label className="text-sm font-medium text-zinc-950 dark:text-white">
+              <label className="text-sm font-medium text-zinc-950">
                 {label}
               </label>
             )}
             {showValue && (
-              <span className="text-sm text-zinc-600 dark:text-zinc-400">
+              <span className="text-sm text-zinc-600">
                 {value}
               </span>
             )}
@@ -62,10 +62,10 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
         
         <div className="relative">
           {/* Track */}
-          <div className="h-2 bg-zinc-200 rounded-lg overflow-hidden dark:bg-zinc-700">
+          <div className="h-2 bg-zinc-200 rounded-lg overflow-hidden">
             {/* Progress */}
             <div 
-              className="h-full bg-blue-600 transition-all duration-150 ease-out dark:bg-blue-500"
+              className="h-full bg-blue-600 transition-all duration-150 ease-out"
               style={{ width: `${percentage}%` }}
             />
           </div>
@@ -95,7 +95,6 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           <div 
             className={clsx(
               'absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full border-2 border-blue-600 shadow-sm pointer-events-none transition-all duration-150 ease-out',
-              'dark:border-blue-500 dark:bg-zinc-900',
               disabled && 'opacity-50'
             )}
             style={{ 

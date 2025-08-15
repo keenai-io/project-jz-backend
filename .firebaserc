@@ -1,6 +1,7 @@
 {
   "projects": {
-    "staging": "project-jz-464301"
+    "staging": "project-jz-464301",
+    "default": "project-jz-464301"
   },
   "targets": {},
   "etags": {}

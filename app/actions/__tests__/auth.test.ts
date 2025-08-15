@@ -70,11 +70,43 @@ describe('Auth Server Actions', () => {
     });
 
     /**
+     * Tests NextAuth redirect error handling
+     */
+    it('should re-throw redirect errors', async () => {
+      const redirectError = {
+        digest: 'NEXT_REDIRECT',
+        message: 'NEXT_REDIRECT',
+      };
+      mockAuthService.signOut.mockRejectedValue(redirectError);
+
+      await expect(signOutAction()).rejects.toEqual(redirectError);
+      
+      expect(mockAuthService.signOut).toHaveBeenCalledTimes(1);
+      expect(mockServerLogger.error).not.toHaveBeenCalled();
+    });
+
+    /**
      * Tests that signout action is a server action
      */
     it('should be a server function', () => {
       // Server actions should be functions
       expect(typeof signOutAction).toBe('function');
+    });
+
+    /**
+     * Tests non-Error object handling
+     */
+    it('should handle non-Error objects', async () => {
+      const nonErrorObject = 'string error';
+      mockAuthService.signOut.mockRejectedValue(nonErrorObject);
+
+      await expect(signOutAction()).rejects.toThrow('Failed to sign out');
+      
+      expect(mockServerLogger.error).toHaveBeenCalledWith(
+        'Sign out error',
+        new Error('string error'),
+        'auth'
+      );
     });
   });
 });

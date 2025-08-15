@@ -1,0 +1,53 @@
+# Firebase App Hosting Configuration
+# https://firebase.google.com/docs/app-hosting
+
+# Runtime configuration
+runtime: nodejs20
+
+# Build configuration
+build:
+  # Commands to run during build
+  commands:
+    - npm ci
+    - npm run intlayer:build
+    - npm run build
+  
+  # Environment variables available during build
+  env:
+    NODE_ENV: production
+    NEXT_TELEMETRY_DISABLED: 1
+
+# Runtime environment variables
+# These will be available to your app at runtime
+env:
+  - variable: NODE_ENV
+    value: production
+  - variable: NEXT_TELEMETRY_DISABLED
+    value: "1"
+
+# CPU and memory allocation
+cpu: 1
+memory: 2Gi
+
+# Minimum and maximum number of instances
+minInstances: 0
+maxInstances: 10
+
+# Concurrency - number of requests per instance
+concurrency: 80
+
+# Health check configuration
+healthCheck:
+  path: /api/health
+  timeout: 30s
+  checkInterval: 10s
+  failureThreshold: 3
+  successThreshold: 1
+
+# Request timeout
+timeout: 60s
+
+# Auto-scaling configuration
+scaling:
+  targetConcurrency: 70
+  cooldownPeriod: 5m

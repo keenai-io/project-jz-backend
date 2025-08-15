@@ -1,0 +1,176 @@
+name: Deploy to Staging (Firebase App Hosting)
+
+on:
+  push:
+    branches: [develop, staging]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - '.vscode/**'
+      - '.github/**'
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run type-check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run tests
+        run: npm run test:coverage
+
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Intlayer
+        run: npm run intlayer:build
+
+      - name: Build Next.js app
+        run: npm run build
+        env:
+          NODE_ENV: production
+          NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-build-files
+          path: |
+            .next/
+            public/
+            package.json
+            package-lock.json
+          retention-days: 1
+
+  deploy:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_STAGING }}
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: staging-build-files
+
+      - name: Set Firebase project
+        run: firebase use marketplace-ai-staging
+
+      - name: Set environment variables
+        env:
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET_STAGING }}
+          AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID_STAGING }}
+          AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET_STAGING }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID_STAGING }}
+          FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL_STAGING }}
+          FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY_STAGING }}
+          FIRESTORE_DATABASE_ID: ${{ secrets.FIRESTORE_DATABASE_ID_STAGING }}
+        run: |
+          # Set environment variables in Firebase App Hosting
+          echo "Setting staging environment variables..."
+          firebase apphosting:secrets:set AUTH_SECRET --backend=marketplace-ai-staging-backend --value="$AUTH_SECRET"
+          firebase apphosting:secrets:set AUTH_GOOGLE_ID --backend=marketplace-ai-staging-backend --value="$AUTH_GOOGLE_ID"
+          firebase apphosting:secrets:set AUTH_GOOGLE_SECRET --backend=marketplace-ai-staging-backend --value="$AUTH_GOOGLE_SECRET"
+          firebase apphosting:secrets:set FIREBASE_PROJECT_ID --backend=marketplace-ai-staging-backend --value="$FIREBASE_PROJECT_ID"
+          firebase apphosting:secrets:set FIREBASE_CLIENT_EMAIL --backend=marketplace-ai-staging-backend --value="$FIREBASE_CLIENT_EMAIL"
+          firebase apphosting:secrets:set FIREBASE_PRIVATE_KEY --backend=marketplace-ai-staging-backend --value="$FIREBASE_PRIVATE_KEY"
+          firebase apphosting:secrets:set FIRESTORE_DATABASE_ID --backend=marketplace-ai-staging-backend --value="$FIRESTORE_DATABASE_ID"
+
+      - name: Deploy to Firebase App Hosting
+        run: |
+          # Deploy the application
+          firebase apphosting:backends:deploy marketplace-ai-staging-backend \
+            --repo=github:${{ github.repository }} \
+            --branch=${{ github.ref_name }}
+
+      - name: Get deployment URL
+        id: deploy_url
+        run: |
+          URL=$(firebase apphosting:backends:get marketplace-ai-staging-backend --format=json | jq -r '.uri')
+          echo "deployment_url=$URL" >> $GITHUB_OUTPUT
+
+      - name: Run smoke tests
+        run: |
+          # Wait for deployment to be ready
+          sleep 30
+          
+          # Check health endpoint
+          curl -f ${{ steps.deploy_url.outputs.deployment_url }}/api/health || exit 1
+          
+          # Check main page
+          curl -f ${{ steps.deploy_url.outputs.deployment_url }} || exit 1
+
+      - name: Comment PR with deployment URL
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 **Staging deployment ready!**
+              
+              🌐 **URL:** ${{ steps.deploy_url.outputs.deployment_url }}
+              
+              ✅ **Status:** Deployed successfully
+              📝 **Commit:** ${context.sha.substring(0, 7)}
+              `
+            })
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "🎉 Staging deployment successful!"
+          echo "URL: ${{ steps.deploy_url.outputs.deployment_url }}"
