@@ -64,12 +64,12 @@ describe('useFileManagement', () => {
       const { result } = renderHook(() => useFileManagement());
 
       act(() => {
-        result.current.onDrop([mockFiles[0], mockFiles[1]]);
+        result.current.onDrop([mockFiles[0]!, mockFiles[1]!]);
       });
 
       expect(result.current.files).toHaveLength(2);
-      expect(result.current.files[0]).toBe(mockFiles[0]);
-      expect(result.current.files[1]).toBe(mockFiles[1]);
+      expect(result.current.files[0]).toBe(mockFiles[0]!);
+      expect(result.current.files[1]).toBe(mockFiles[1]!);
     });
 
     /**
@@ -81,12 +81,12 @@ describe('useFileManagement', () => {
 
       // Add 2 files first
       act(() => {
-        result.current.onDrop([mockFiles[0], mockFiles[1]]);
+        result.current.onDrop([mockFiles[0]!, mockFiles[1]!]);
       });
 
       // Try to add 2 more files (should only add 1)
       act(() => {
-        result.current.onDrop([mockFiles[2], mockFiles[3]]);
+        result.current.onDrop([mockFiles[2]!, mockFiles[3]!]);
       });
 
       expect(result.current.files).toHaveLength(3);
@@ -112,7 +112,7 @@ describe('useFileManagement', () => {
 
       // Add a file and set preview
       act(() => {
-        result.current.onDrop([mockFiles[0]]);
+        result.current.onDrop([mockFiles[0]!]);
       });
 
       await act(async () => {
@@ -124,7 +124,7 @@ describe('useFileManagement', () => {
 
       // Add another file
       act(() => {
-        result.current.onDrop([mockFiles[1]]);
+        result.current.onDrop([mockFiles[1]!]);
       });
 
       expect(result.current.previewFileIndex).toBe(-1);
@@ -139,17 +139,17 @@ describe('useFileManagement', () => {
 
       // Add first file
       act(() => {
-        result.current.onDrop([mockFiles[0]]);
+        result.current.onDrop([mockFiles[0]!]);
       });
 
       // Add second file
       act(() => {
-        result.current.onDrop([mockFiles[1]]);
+        result.current.onDrop([mockFiles[1]!]);
       });
 
       expect(result.current.files).toHaveLength(2);
-      expect(result.current.files[0]).toBe(mockFiles[0]);
-      expect(result.current.files[1]).toBe(mockFiles[1]);
+      expect(result.current.files[0]).toBe(mockFiles[0]!);
+      expect(result.current.files[1]).toBe(mockFiles[1]!);
     });
   });
 
@@ -162,7 +162,7 @@ describe('useFileManagement', () => {
 
       // Add files first
       act(() => {
-        result.current.onDrop([mockFiles[0], mockFiles[1], mockFiles[2]]);
+        result.current.onDrop([mockFiles[0]!, mockFiles[1]!, mockFiles[2]!]);
       });
 
       // Delete middle file
@@ -186,7 +186,7 @@ describe('useFileManagement', () => {
 
       // Add files and set preview
       act(() => {
-        result.current.onDrop([mockFiles[0], mockFiles[1]]);
+        result.current.onDrop([mockFiles[0]!, mockFiles[1]!]);
       });
 
       await act(async () => {
@@ -213,7 +213,7 @@ describe('useFileManagement', () => {
 
       // Add one file
       act(() => {
-        result.current.onDrop([mockFiles[0]]);
+        result.current.onDrop([mockFiles[0]!]);
       });
 
       // Try to delete at invalid index
@@ -239,7 +239,7 @@ describe('useFileManagement', () => {
 
       // Add files
       act(() => {
-        result.current.onDrop([mockFiles[0], mockFiles[1]]);
+        result.current.onDrop([mockFiles[0]!, mockFiles[1]!]);
       });
 
       // Preview first file
@@ -270,7 +270,7 @@ describe('useFileManagement', () => {
 
       // Add file
       act(() => {
-        result.current.onDrop([mockFiles[0]]);
+        result.current.onDrop([mockFiles[0]!]);
       });
 
       // Preview file
@@ -297,7 +297,7 @@ describe('useFileManagement', () => {
 
       // Add file
       act(() => {
-        result.current.onDrop([mockFiles[0]]);
+        result.current.onDrop([mockFiles[0]!]);
       });
 
       // Try to preview file
@@ -311,7 +311,7 @@ describe('useFileManagement', () => {
         'Failed to preview file',
         previewError,
         'file',
-        { fileName: mockFiles[0].name }
+        { fileName: mockFiles[0]!.name }
       );
     });
 
@@ -325,7 +325,7 @@ describe('useFileManagement', () => {
 
       // Add one file
       act(() => {
-        result.current.onDrop([mockFiles[0]]);
+        result.current.onDrop([mockFiles[0]!]);
       });
 
       // Try to preview non-existent file
@@ -348,7 +348,7 @@ describe('useFileManagement', () => {
 
       // Add files
       act(() => {
-        result.current.onDrop([mockFiles[0], mockFiles[1]]);
+        result.current.onDrop([mockFiles[0]!, mockFiles[1]!]);
       });
 
       // Preview first file
@@ -380,7 +380,7 @@ describe('useFileManagement', () => {
 
       // Add files
       act(() => {
-        result.current.onDrop([mockFiles[0], mockFiles[1]]);
+        result.current.onDrop([mockFiles[0]!, mockFiles[1]!]);
       });
 
       // Preview first file

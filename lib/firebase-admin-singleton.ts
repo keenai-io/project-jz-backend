@@ -26,7 +26,7 @@ export function getFirebaseAdminApp(): App {
 
   // Check if Firebase Admin SDK already has apps (fallback)
   const existingApps = getApps()
-  if (existingApps.length > 0) {
+  if (existingApps.length > 0 && existingApps[0]) {
     globalThis.firebaseAdmin = existingApps[0]
     return existingApps[0]
   }

@@ -23,7 +23,7 @@ class ESBuildAndJSDOMCompatibleTextEncoder extends TextEncoder {
     const arr = new Uint8Array(decodedURI.length);
     const chars = decodedURI.split("");
     for (let i = 0; i < chars.length; i++) {
-      arr[i] = decodedURI[i].charCodeAt(0);
+      arr[i] = decodedURI[i]!.charCodeAt(0);
     }
     return arr;
   }
@@ -39,10 +39,10 @@ if (typeof global.Uint8Array === 'undefined') {
 // Additional polyfills for environments that need them
 if (typeof window !== 'undefined') {
   if (!window.TextEncoder) {
-    window.TextEncoder = util.TextEncoder;
+    window.TextEncoder = ESBuildAndJSDOMCompatibleTextEncoder;
   }
   if (!window.TextDecoder) {
-    window.TextDecoder = util.TextDecoder;
+    window.TextDecoder = TextDecoder;
   }
 }
 
@@ -91,14 +91,20 @@ HTMLElement.prototype.focus = vi.fn();
 HTMLElement.prototype.blur = vi.fn();
 
 // Mock File API for tests that need file operations
-global.FileReader = vi.fn().mockImplementation(() => ({
-  readAsArrayBuffer: vi.fn(),
-  readAsText: vi.fn(),
-  readAsDataURL: vi.fn(),
-  onload: null,
-  onerror: null,
-  result: null,
-}));
+class MockFileReader {
+  readAsArrayBuffer = vi.fn()
+  readAsText = vi.fn()
+  readAsDataURL = vi.fn()
+  onload: ((this: FileReader, ev: ProgressEvent<FileReader>) => any) | null = null
+  onerror: ((this: FileReader, ev: ProgressEvent<FileReader>) => any) | null = null
+  result: string | ArrayBuffer | null = null
+  readyState = 0
+  static EMPTY = 0
+  static LOADING = 1
+  static DONE = 2
+}
+
+global.FileReader = MockFileReader as any;
 
 // Enhanced File mock with proper arrayBuffer support
 class MockFile extends File {
@@ -128,11 +134,13 @@ class MockFile extends File {
 global.File = MockFile as any;
 
 // Mock URL.createObjectURL and revokeObjectURL for file handling
-global.URL = {
-  ...global.URL,
-  createObjectURL: vi.fn().mockReturnValue('mock-object-url'),
-  revokeObjectURL: vi.fn(),
-};
+const OriginalURL = global.URL;
+class MockURL extends OriginalURL {
+  static createObjectURL = vi.fn().mockReturnValue('mock-object-url')
+  static revokeObjectURL = vi.fn()
+}
+
+global.URL = MockURL as any;
 
 // Mock crypto for UUID generation in tests
 Object.defineProperty(global, 'crypto', {
@@ -148,7 +156,7 @@ Object.defineProperty(global, 'crypto', {
 });
 
 // Enhanced mock fetch for API testing with realistic responses
-const mockFetch = vi.fn().mockImplementation((url: string, options?: RequestInit) => {
+const mockFetch = vi.fn().mockImplementation((_url: string, _options?: RequestInit) => {
   // Default success response
   return Promise.resolve({
     ok: true,

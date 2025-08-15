@@ -5,13 +5,30 @@ import { testFirestoreEmulator, getServerTestDocuments } from '@/app/actions/tes
 import { Button } from '@/app/components/ui/button';
 import { Text } from '@/app/components/ui/text';
 
+interface EmulatorTestResult {
+  success: boolean;
+  message: string;
+  emulatorUsed?: boolean;
+  data?: unknown;
+}
+
+interface TestDocument {
+  id: string;
+  message?: string;
+  timestamp?: string;
+  randomValue?: number;
+  serverTest?: boolean;
+  [key: string]: unknown;
+}
+
+
 /**
  * Component to test server-side Firebase emulator functionality
  * Only shows in development mode
  */
 export function ServerEmulatorTest() {
-  const [result, setResult] = useState<any>(null);
-  const [documents, setDocuments] = useState<any[]>([]);
+  const [result, setResult] = useState<EmulatorTestResult | null>(null);
+  const [documents, setDocuments] = useState<TestDocument[]>([]);
   const [loading, setLoading] = useState(false);
 
   // Don't render in production
@@ -49,7 +66,11 @@ export function ServerEmulatorTest() {
       setDocuments(response.documents || []);
       
       if (!response.success) {
-        setResult(response);
+        setResult({
+          success: response.success,
+          message: response.message || 'Failed to get documents',
+          emulatorUsed: response.emulatorUsed
+        });
       }
     } catch (error) {
       setResult({
@@ -74,7 +95,6 @@ export function ServerEmulatorTest() {
         </Button>
       </div>
 
-      {/* Result Display */}
       {result && (
         <div className={`mb-4 p-3 rounded ${result.success ? 'bg-green-100 border border-green-200' : 'bg-red-100 border border-red-200'}`}>
           <Text className={`text-sm ${result.success ? 'text-green-800' : 'text-red-800'}`}>
@@ -85,7 +105,7 @@ export function ServerEmulatorTest() {
               Emulator Used: {result.emulatorUsed ? 'Yes' : 'No'}
             </Text>
           )}
-          {result.data && (
+          {result.data !== undefined && (
             <details className="mt-2">
               <summary className="text-xs cursor-pointer">Show Data</summary>
               <pre className="text-xs bg-white p-2 rounded mt-1 overflow-auto">
@@ -104,11 +124,11 @@ export function ServerEmulatorTest() {
           </Text>
           <div className="bg-white rounded border p-2 max-h-40 overflow-y-auto">
             {documents.map((doc, index) => (
-              <div key={doc.id} className="text-xs mb-2 p-2 bg-gray-50 rounded">
+              <div key={`${doc.id}-${index}`} className="text-xs mb-2 p-2 bg-gray-50 rounded">
                 <Text className="font-mono">#{index + 1} ({doc.id})</Text>
-                <Text>{doc.message}</Text>
+                <Text>{doc.message || 'No message'}</Text>
                 <Text className="text-gray-500">
-                  {doc.timestamp} | Random: {doc.randomValue}
+                  {doc.timestamp || 'No timestamp'} | Random: {doc.randomValue || 'N/A'}
                 </Text>
               </div>
             ))}

@@ -27,9 +27,13 @@ export const authConfig = {
       // Allow access to all routes when logged in
       return true;
     },
-    async signIn({ account }) {
+    async signIn({ account, user }) {
       // Allow OAuth sign in
       if (account?.provider === 'google') {
+        console.log('[AUTH] Google OAuth sign-in', {
+          userId: user?.id,
+          email: user?.email,
+        });
         return true;
       }
       return false;
@@ -41,10 +45,25 @@ export const authConfig = {
       else if (new URL(url).origin === baseUrl) return url;
       return baseUrl;
     },
-    async session({ session }) {
+    async session({ session, token }) {
+      // Enhance session with user role and enabled status from token
+      if (token.role !== undefined && token.enabled !== undefined) {
+        session.user = {
+          ...session.user,
+          role: token.role as 'admin' | 'user',
+          enabled: token.enabled as boolean,
+        };
+      }
       return session;
     },
-    async jwt({ token }) {
+    async jwt({ token, user }) {
+      // For Edge Runtime compatibility, we'll set default values here
+      // The enhanced Firestore adapter handles user creation with proper defaults
+      if (user) {
+        token.role = user.role ?? 'user';
+        token.enabled = user.enabled ?? false; // New users require admin approval
+      }
+      
       return token;
     },
   },

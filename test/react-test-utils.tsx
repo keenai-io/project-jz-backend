@@ -6,7 +6,6 @@
 import { ReactElement, ReactNode } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { vi } from 'vitest';
 
 /**
  * Creates a test QueryClient with safe defaults for testing
@@ -22,11 +21,6 @@ export function createTestQueryClient(): QueryClient {
       mutations: {
         retry: false,
       },
-    },
-    logger: {
-      log: vi.fn(),
-      warn: vi.fn(),
-      error: vi.fn(),
     },
   });
 }
