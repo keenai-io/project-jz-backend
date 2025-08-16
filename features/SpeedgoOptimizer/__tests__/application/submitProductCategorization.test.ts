@@ -181,7 +181,7 @@ describe('submitProductCategorization', () => {
     const result = await submitProductCategorization(mockProducts);
 
     expect(mockFetch).toHaveBeenCalledWith(
-      'https://product-categorizer-364702430350.us-central1.run.app/match',
+      'https://api.test.com/categorize',
       {
         method: 'POST',
         headers: {

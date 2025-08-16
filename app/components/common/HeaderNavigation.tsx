@@ -21,6 +21,7 @@ import {
   UserIcon,
   ShieldCheckIcon,
   LightBulbIcon,
+  UsersIcon,
 } from '@heroicons/react/16/solid';
 import { signOutAction } from '@/app/actions/auth';
 
@@ -35,7 +36,7 @@ interface HeaderNavigationProps {
  * Matches the design shown in the reference home screen.
  */
 export function HeaderNavigation({ onConfigurationClick }: HeaderNavigationProps): ReactElement {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSigningOut, startSignOutTransition] = useTransition();
   const content = useIntlayer<'header-navigation'>('header-navigation');
@@ -88,7 +89,7 @@ export function HeaderNavigation({ onConfigurationClick }: HeaderNavigationProps
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 p-2 rounded-md"
+              className="text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 p-2 rounded-md cursor-pointer"
             >
               <span className="sr-only">{isMobileMenuOpen ? content.MobileMenu.closeMenu : content.MobileMenu.openMenu}</span>
               {isMobileMenuOpen ? (
@@ -104,7 +105,10 @@ export function HeaderNavigation({ onConfigurationClick }: HeaderNavigationProps
             <LanguageSwitcher />
             {session?.user ? (
               <Dropdown>
-                <DropdownButton className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                <DropdownButton 
+                  as="button"
+                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-colors bg-transparent border-0 cursor-pointer"
+                >
                   <Avatar 
                     src={session.user.image || undefined} 
                     initials={session.user.name?.charAt(0) || session.user.email?.charAt(0) || 'U'}
@@ -120,6 +124,12 @@ export function HeaderNavigation({ onConfigurationClick }: HeaderNavigationProps
                     <Cog8ToothIcon />
                     <DropdownLabel>{content.UserMenu.settings}</DropdownLabel>
                   </DropdownItem>
+                  {session?.user.role === 'admin' && (
+                    <DropdownItem href="/admin/users">
+                      <UsersIcon />
+                      <DropdownLabel>{content.UserMenu.userManagement}</DropdownLabel>
+                    </DropdownItem>
+                  )}
                   <DropdownDivider />
                   <DropdownItem href="/privacy-policy">
                     <ShieldCheckIcon />
@@ -138,13 +148,10 @@ export function HeaderNavigation({ onConfigurationClick }: HeaderNavigationProps
                   </DropdownItem>
                 </DropdownMenu>
               </Dropdown>
-            ) : (
-              <Link 
-                href="/signin" 
-                className="text-gray-900 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors"
-              >
-                {content.Navigation.signIn}
-              </Link>
+            ) : status === 'loading' && (
+              <div className="flex items-center px-3 py-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              </div>
             )}
           </div>
         </div>
@@ -159,7 +166,7 @@ export function HeaderNavigation({ onConfigurationClick }: HeaderNavigationProps
                     onConfigurationClick();
                     setIsMobileMenuOpen(false);
                   }}
-                  className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left"
+                  className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium w-full text-left cursor-pointer"
                 >
                   {content.Navigation.configurations}
                 </button>
@@ -192,7 +199,13 @@ export function HeaderNavigation({ onConfigurationClick }: HeaderNavigationProps
                 <div className="px-3 py-2">
                   <LanguageSwitcher />
                 </div>
-                {!session?.user && (
+                {!session?.user && status === 'loading' && (
+                  <div className="flex items-center justify-center px-3 py-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                    <span className="text-gray-600 text-base font-medium">Loading...</span>
+                  </div>
+                )}
+                {!session?.user && status !== 'loading' && (
                   <Link 
                     href="/signin" 
                     className="text-gray-900 hover:text-blue-600 block px-3 py-2 rounded-md text-base font-medium"
@@ -231,6 +244,16 @@ export function HeaderNavigation({ onConfigurationClick }: HeaderNavigationProps
                         <Cog8ToothIcon className="w-5 h-5 mr-3 text-gray-400" />
                         {content.UserMenu.settings}
                       </Link>
+                      {session?.user.role === 'admin' && (
+                        <Link 
+                          href="/admin/users" 
+                          className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:text-blue-600 hover:bg-gray-50"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <UsersIcon className="w-5 h-5 mr-3 text-gray-400" />
+                          {content.UserMenu.userManagement}
+                        </Link>
+                      )}
                       <Link 
                         href="/privacy-policy" 
                         className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:text-blue-600 hover:bg-gray-50"
@@ -253,7 +276,7 @@ export function HeaderNavigation({ onConfigurationClick }: HeaderNavigationProps
                           setIsMobileMenuOpen(false);
                         }}
                         disabled={isSigningOut}
-                        className="flex items-center w-full px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:text-red-600 hover:bg-red-50 disabled:opacity-50"
+                        className="flex items-center w-full px-3 py-2 rounded-md text-base font-medium text-gray-900 hover:text-red-600 hover:bg-red-50 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                       >
                         <ArrowRightStartOnRectangleIcon className="w-5 h-5 mr-3 text-gray-400" />
                         {isSigningOut ? content.UserMenu.signingOut : content.UserMenu.signOut}

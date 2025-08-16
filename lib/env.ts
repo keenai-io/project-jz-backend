@@ -11,6 +11,9 @@ const envSchema = z.object({
   FIREBASE_CLIENT_EMAIL: z.string().email(),
   FIREBASE_PRIVATE_KEY: z.string().min(1),
   FIRESTORE_DATABASE_ID: z.string().min(1).optional(), // Optional: specify database ID
+  
+  // AI Categorization Service
+  AI_CATEGORIZATION_ENDPOINT: z.string().url(),
 });
 
 export const env = envSchema.parse(process.env);

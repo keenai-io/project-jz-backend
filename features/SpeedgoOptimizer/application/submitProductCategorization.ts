@@ -10,6 +10,7 @@ import {
   type CategoryResponse
 } from "@features/SpeedgoOptimizer/domain/schemas/CategoryResponse";
 import serverLogger from "@/lib/logger.server";
+import { env } from "@/lib/env";
 import { ZodError } from "zod";
 import { formatError, createValidationErrorMessage, formatFastApiError } from "@/lib/zod-error-formatter";
 
@@ -23,7 +24,7 @@ export async function submitProductCategorization(
   products: CategoryRequestItem[]
 ): Promise<{ success: true; data: CategoryResponse } | { success: false; error: string }> {
   const startTime = Date.now();
-  const apiUrl = 'https://product-categorizer-364702430350.us-central1.run.app/match';
+  const apiUrl = env.AI_CATEGORIZATION_ENDPOINT;
   
   try {
     serverLogger.info(`Starting product categorization for ${products.length} products`, 'categorization', {

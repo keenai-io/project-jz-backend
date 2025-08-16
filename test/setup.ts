@@ -74,3 +74,10 @@ vi.mock('@/lib/logger.client', () => ({
 
 // Mock environment variables
 vi.stubEnv('NODE_ENV', 'test');
+vi.stubEnv('AUTH_SECRET', 'test-auth-secret-minimum-32-characters-long');
+vi.stubEnv('AUTH_GOOGLE_ID', 'test-google-client-id');
+vi.stubEnv('AUTH_GOOGLE_SECRET', 'test-google-client-secret');
+vi.stubEnv('FIREBASE_PROJECT_ID', 'test-project-id');
+vi.stubEnv('FIREBASE_CLIENT_EMAIL', 'test@test-project.iam.gserviceaccount.com');
+vi.stubEnv('FIREBASE_PRIVATE_KEY', '-----BEGIN PRIVATE KEY-----\ntest-private-key\n-----END PRIVATE KEY-----\n');
+vi.stubEnv('AI_CATEGORIZATION_ENDPOINT', 'https://api.test.com/categorize');

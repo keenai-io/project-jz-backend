@@ -61,6 +61,10 @@ const headerNavigationContent = {
       signingOut: t({
         en: "Signing Out...",
         ko: "로그아웃 중..."
+      }),
+      userManagement: t({
+        en: "User Management",
+        ko: "사용자 관리"
       })
     }
   },
