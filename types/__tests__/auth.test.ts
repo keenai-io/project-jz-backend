@@ -58,7 +58,7 @@ describe('Auth Types and Schemas', () => {
         enabled: true,
         createdAt: new Date(),
         updatedAt: new Date(),
-        lastLoginAt: new Date(),
+        lastLogin: new Date(),
       };
 
       const result = FirestoreUserSchema.parse(validUser);

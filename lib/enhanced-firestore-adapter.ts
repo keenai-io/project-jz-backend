@@ -11,14 +11,21 @@ import { serverLogger } from './logger.server';
 import type { Adapter, AdapterUser } from 'next-auth/adapters';
 
 /**
+ * Enhanced adapter interface that includes the updateLastLogin function
+ */
+interface EnhancedAdapter extends Adapter {
+  updateLastLogin?: (userId: string) => Promise<void>;
+}
+
+/**
  * Create an enhanced FirestoreAdapter that includes default role and enabled fields
  * 
  * This adapter wraps the standard FirestoreAdapter and ensures that new users
  * are created with the required role and enabled fields for the User Access Control system.
  * 
- * @returns {Adapter} Enhanced NextAuth adapter
+ * @returns {EnhancedAdapter} Enhanced NextAuth adapter with updateLastLogin function
  */
-export function createEnhancedFirestoreAdapter(): Adapter {
+export function createEnhancedFirestoreAdapter(): EnhancedAdapter {
   const baseAdapter = FirestoreAdapter(getFirestoreAdminInstance()) as Adapter;
   
   // Store the original createUser function
@@ -37,6 +44,7 @@ export function createEnhancedFirestoreAdapter(): Adapter {
         ...user,
         role: 'user' as const,
         enabled: false, // New users require admin approval
+        lastLogin: null, // Initialize as null, will be set on first login
         createdAt: new Date(),
         updatedAt: new Date(),
       };
@@ -104,5 +112,32 @@ export function createEnhancedFirestoreAdapter(): Adapter {
     };
   }
   
-  return baseAdapter;
+  // Add custom updateLastLogin function for session tracking
+  const updateLastLogin = async (userId: string): Promise<void> => {
+    try {
+      const firestore = getFirestoreAdminInstance();
+      await firestore.collection('users').doc(userId).update({
+        lastLogin: new Date(),
+        updatedAt: new Date(),
+      });
+      
+      serverLogger.info('Updated user last login timestamp', 'auth', {
+        userId,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      serverLogger.error('Failed to update last login timestamp', 
+        error instanceof Error ? error : new Error(String(error)), 
+        'auth', 
+        { userId }
+      );
+      // Don't throw error to avoid blocking authentication
+    }
+  };
+
+  // Add the updateLastLogin function to the adapter for external use
+  const enhancedAdapter = baseAdapter as EnhancedAdapter;
+  enhancedAdapter.updateLastLogin = updateLastLogin;
+  
+  return enhancedAdapter;
 }

@@ -1,0 +1,132 @@
+name: Make User Admin (Production)
+
+on:
+  workflow_dispatch:
+    inputs:
+      user_email:
+        description: 'Email address of the user to make admin'
+        required: true
+        type: string
+      justification:
+        description: 'Business justification for admin access'
+        required: true
+        type: string
+
+jobs:
+  request-approval:
+    name: Request Production Admin Access
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Validate inputs
+        run: |
+          email="${{ github.event.inputs.user_email }}"
+          justification="${{ github.event.inputs.justification }}"
+          
+          if [[ ! "$email" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]; then
+            echo "❌ Invalid email format: $email"
+            exit 1
+          fi
+          
+          if [ ${#justification} -lt 10 ]; then
+            echo "❌ Justification must be at least 10 characters"
+            exit 1
+          fi
+          
+          echo "✅ Input validation passed"
+
+      - name: Create approval issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `ADMIN ACCESS REQUEST: ${{ github.event.inputs.user_email }}`,
+              body: `## Production Admin Access Request
+              
+              **Requested by:** @${{ github.actor }}
+              **User Email:** ${{ github.event.inputs.user_email }}
+              **Environment:** Production
+              **Request Date:** ${new Date().toISOString()}
+              
+              ### Business Justification
+              ${{ github.event.inputs.justification }}
+              
+              ### Review Checklist
+              - [ ] User identity verified
+              - [ ] Business justification reviewed
+              - [ ] Security approval obtained
+              - [ ] Admin access is time-limited (if applicable)
+              
+              ### Approval Process
+              To approve this request:
+              1. Review the justification and user identity
+              2. Add approval comment: "APPROVED: [reason]"
+              3. Apply "approved" label
+              4. Manually trigger the "Execute Production Admin Promotion" workflow
+              
+              To deny this request:
+              1. Add denial comment: "DENIED: [reason]"
+              2. Apply "denied" label
+              3. Close this issue
+              
+              ---
+              *This is an automated request created by GitHub Actions*`,
+              labels: ['admin-request', 'production', 'pending-approval']
+            });
+            
+            console.log(`Created approval issue #${issue.data.number}`);
+            
+            // Add comment with run details
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issue.data.number,
+              body: `🤖 **Workflow Run Details**
+              
+              - **Run ID:** ${{ github.run_id }}
+              - **Run URL:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              - **Triggered by:** @${{ github.actor }}
+              
+              Please review this request carefully before approval.`
+            });
+
+      - name: Summary
+        run: |
+          echo "## Production Admin Access Request Created" >> $GITHUB_STEP_SUMMARY
+          echo "- **User:** ${{ github.event.inputs.user_email }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Requested by:** @${{ github.actor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** Pending approval via GitHub issue" >> $GITHUB_STEP_SUMMARY
+          echo "- **Next steps:** Review and approval required before execution" >> $GITHUB_STEP_SUMMARY
+
+  # This job only runs if the above job is successful and in development/staging
+  execute-non-production:
+    name: Execute Admin Promotion (Dev/Staging)
+    runs-on: ubuntu-latest
+    needs: request-approval
+    if: ${{ github.event.inputs.environment != 'production' }}
+    
+    environment: development  # Change this based on needs
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run make-admin script
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+          FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+        run: |
+          echo "🚀 Making user admin: ${{ github.event.inputs.user_email }}"
+          npx tsx scripts/make-admin.ts "${{ github.event.inputs.user_email }}"

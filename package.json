@@ -26,7 +26,13 @@
     "env:list": "scripts/manage-env-vars.sh list",
     "env:set:dev": "scripts/manage-env-vars.sh set development",
     "env:set:staging": "scripts/manage-env-vars.sh set staging .env.staging",
-    "env:set:production": "scripts/manage-env-vars.sh set production .env.production"
+    "env:set:production": "scripts/manage-env-vars.sh set production .env.production",
+    "admin:make": "npx tsx scripts/make-admin.ts",
+    "admin:list": "npx tsx scripts/list-admins.ts",
+    "admin:dashboard": "npx tsx scripts/admin-dashboard.ts",
+    "migrate:lastlogin": "npx tsx scripts/migrate-add-lastlogin.ts",
+    "admin:test-lastlogin": "npx tsx scripts/test-lastlogin.ts",
+    "admin:update-lastlogin": "npx tsx scripts/update-lastlogin.ts"
   },
   "dependencies": {
     "@auth/firebase-adapter": "^2.10.0",

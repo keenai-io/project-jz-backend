@@ -71,6 +71,7 @@ describe('Enhanced Firestore Adapter', () => {
         ...inputUser,
         role: 'user',
         enabled: false,
+        lastLogin: null,
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date)
       };

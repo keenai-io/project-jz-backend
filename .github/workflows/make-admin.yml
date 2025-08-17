@@ -1,0 +1,87 @@
+name: Make User Admin
+
+on:
+  workflow_dispatch:
+    inputs:
+      user_email:
+        description: 'Email address of the user to make admin'
+        required: true
+        type: string
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'development'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+jobs:
+  make-admin:
+    name: Make User Admin
+    runs-on: ubuntu-latest
+    
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate email format
+        run: |
+          email="${{ github.event.inputs.user_email }}"
+          if [[ ! "$email" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]; then
+            echo "❌ Invalid email format: $email"
+            exit 1
+          fi
+          echo "✅ Email format is valid: $email"
+
+      - name: Setup Firebase environment
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+          FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+        run: |
+          # Verify required environment variables are set
+          if [ -z "$FIREBASE_PROJECT_ID" ]; then
+            echo "❌ FIREBASE_PROJECT_ID secret not set"
+            exit 1
+          fi
+          if [ -z "$FIREBASE_CLIENT_EMAIL" ]; then
+            echo "❌ FIREBASE_CLIENT_EMAIL secret not set"
+            exit 1
+          fi
+          if [ -z "$FIREBASE_PRIVATE_KEY" ]; then
+            echo "❌ FIREBASE_PRIVATE_KEY secret not set"
+            exit 1
+          fi
+          echo "✅ All Firebase environment variables are configured"
+
+      - name: Run make-admin script
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_CLIENT_EMAIL: ${{ secrets.FIREBASE_CLIENT_EMAIL }}
+          FIREBASE_PRIVATE_KEY: ${{ secrets.FIREBASE_PRIVATE_KEY }}
+        run: |
+          echo "🚀 Making user admin: ${{ github.event.inputs.user_email }}"
+          echo "📍 Environment: ${{ github.event.inputs.environment }}"
+          npx tsx scripts/make-admin.ts "${{ github.event.inputs.user_email }}"
+
+      - name: Post-execution summary
+        if: always()
+        run: |
+          echo "## Make Admin Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Email:** ${{ github.event.inputs.user_email }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment:** ${{ github.event.inputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Timestamp:** $(date -u)" >> $GITHUB_STEP_SUMMARY

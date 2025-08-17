@@ -48,7 +48,7 @@ export const FirestoreUserSchema = z.object({
   // Optional metadata
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
-  lastLoginAt: z.date().optional(),
+  lastLogin: z.date().nullable().optional(),
 });
 export type FirestoreUser = z.infer<typeof FirestoreUserSchema>;
 
