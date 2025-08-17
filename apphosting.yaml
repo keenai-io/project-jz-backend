@@ -20,10 +20,41 @@ build:
 # Runtime environment variables
 # These will be available to your app at runtime
 env:
+  # Application Environment
   - variable: NODE_ENV
     value: production
   - variable: NEXT_TELEMETRY_DISABLED
     value: "1"
+  
+  # Next.js Configuration
+  - variable: NEXT_PUBLIC_APP_URL
+    value: https://project-jz-test-backend--project-jz-464301.us-central1.hosted.app/
+  
+  # Auth.js v5 Configuration (using secrets for sensitive data)
+  - variable: AUTH_SECRET
+    secret: AUTH_SECRET
+  - variable: AUTH_URL
+    value: https://project-jz-test-backend--project-jz-464301.us-central1.hosted.app/
+  
+  # Google OAuth Configuration (using secrets for sensitive data)
+  - variable: AUTH_GOOGLE_ID
+    secret: AUTH_GOOGLE_ID
+  - variable: AUTH_GOOGLE_SECRET
+    secret: AUTH_GOOGLE_SECRET
+  
+  # Firebase Admin Configuration (using secrets for sensitive data)
+  - variable: FIREBASE_PROJECT_ID
+    value: project-jz-464301
+  - variable: FIREBASE_CLIENT_EMAIL
+    secret: FIREBASE_CLIENT_EMAIL
+  - variable: FIREBASE_PRIVATE_KEY
+    secret: FIREBASE_PRIVATE_KEY
+  - variable: FIRESTORE_DATABASE_ID
+    value: project-jz-firestore-db
+  
+  # AI Categorization Service
+  - variable: AI_CATEGORIZATION_ENDPOINT
+    value: https://product-categorizer-364702430350.us-central1.run.app/match
 
 # CPU and memory allocation
 cpu: 1

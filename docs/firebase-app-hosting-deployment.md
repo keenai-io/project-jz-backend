@@ -1,6 +1,6 @@
 # Firebase App Hosting Deployment Guide
 
-This document provides comprehensive instructions for deploying the Next.js 15 marketplace-ai application to Firebase App Hosting.
+This document provides comprehensive instructions for deploying the Next.js 15 marketplace-ai application to Firebase App Hosting based on the [official Firebase App Hosting documentation](https://firebase.google.com/docs/app-hosting/get-started).
 
 ## Overview
 
@@ -8,7 +8,7 @@ Firebase App Hosting is a modern hosting platform designed for full-stack web ap
 
 - **Server-side rendering** support for Next.js
 - **Automatic scaling** based on traffic
-- **Built-in CI/CD** with GitHub integration
+- **Built-in CI/CD** with GitHub integration (automatic deployments)
 - **Environment management** with secrets
 - **Global CDN** for static assets
 
@@ -21,304 +21,153 @@ Firebase App Hosting is a modern hosting platform designed for full-stack web ap
 
 2. **Firebase Project** with App Hosting enabled
 3. **Google Cloud account** with billing enabled
-4. **GitHub repository** connected to Firebase
+4. **GitHub repository** with your application code
 
-## 🚀 Local Environment Setup
+## 🚀 Setting Up Firebase App Hosting
 
-Follow these steps to set up your local development environment for Firebase App Hosting deployment.
+### Step 1: Create Firebase Project
 
-### Step 1: Install Required Tools
+1. Go to the [Firebase Console](https://console.firebase.google.com)
+2. Click "Create a project" or use an existing project
+3. Enable billing (required for App Hosting)
 
-```bash
-# Install Java (required for Firebase emulators)
-# Debian 12/Ubuntu 22.04+:
-sudo apt update && sudo apt install -y openjdk-17-jre-headless
+### Step 2: Connect Your Repository
 
-# Ubuntu 20.04/Debian 11:
-# sudo apt update && sudo apt install -y openjdk-11-jre-headless
+**Important**: Firebase App Hosting uses automatic deployments from your GitHub repository. You don't deploy manually via CLI commands.
 
-# CentOS/RHEL:
-# sudo yum install -y java-11-openjdk
+1. In Firebase Console, go to **App Hosting** 
+2. Click **Get started**
+3. **Connect your repository**:
+   - Choose GitHub as your provider
+   - Authorize Firebase to access your GitHub account
+   - Select your repository (e.g., `keenai-io/marketplace-ai`)
+   - Choose the branch for automatic deployments (e.g., `main` for production)
 
-# macOS:
-# brew install openjdk@17
+4. **Configure your app**:
+   - Framework: Next.js
+   - Build command: `npm run build` (or your custom build command)
+   - Output directory: `.next` (Next.js default)
 
-# Windows:
-# Download from Oracle or use Chocolatey: choco install openjdk17
+### Step 3: Configure Build Settings
 
-# Verify Java installation
-java -version
-# Expected output: openjdk version "17.x.x" or "11.x.x" or higher
+Firebase App Hosting will automatically detect your `apphosting.yaml` file for configuration. Ensure your file includes:
 
-# Install Firebase CLI globally
-npm install -g firebase-tools
+```yaml
+# apphosting.yaml
+runtime: nodejs20
 
-# Verify installation
-firebase --version
-# Expected output: 13.x.x or higher
+build:
+  commands:
+    - npm ci
+    - npm run intlayer:build
+    - npm run build
+  
+  env:
+    NODE_ENV: production
+    NEXT_TELEMETRY_DISABLED: 1
 
-# Install project dependencies
-npm ci
+# Runtime environment variables (references to secrets)
+env:
+  - variable: NODE_ENV
+    value: production
+  - variable: AUTH_SECRET
+    secret: AUTH_SECRET
+  - variable: AUTH_GOOGLE_ID
+    secret: AUTH_GOOGLE_ID
+  # ... other environment variables
 ```
 
-### Step 2: Firebase Authentication
+### Step 4: Set Up Environment Variables/Secrets
+
+Use the Firebase CLI to set up secrets that your application needs:
 
 ```bash
-# Login to Firebase (opens browser for authentication)
-firebase login
+# Set secrets for your application
+npm run env:set:production
 
-# Verify you're logged in and can access projects
-firebase projects:list
-
-# If you see your projects listed, authentication is successful
+# Or manually set individual secrets
+echo "your-auth-secret" | firebase apphosting:secrets:set AUTH_SECRET --project=your-project-id --force
+echo "your-google-client-id" | firebase apphosting:secrets:set AUTH_GOOGLE_ID --project=your-project-id --force
 ```
 
-### Step 3: Create Firebase Projects
+## Automatic Deployments
 
-Create separate Firebase projects for each environment:
+### How It Works
 
-```bash
-# Create development project
-firebase projects:create marketplace-ai-dev
+Firebase App Hosting automatically deploys your application when:
+- You push commits to your connected branch (e.g., `main`)
+- You create pull requests (for preview deployments)
 
-# Create staging project  
-firebase projects:create marketplace-ai-staging
+### No Manual Deployment Required
 
-# Create production project
-firebase projects:create marketplace-ai-prod
+Unlike traditional hosting, you **DO NOT** need to:
+- Run `firebase deploy` commands
+- Use custom deployment scripts
+- Set up GitHub Actions for deployment
+- Manually create or manage backends
 
-# Enable App Hosting for each project
-firebase use marketplace-ai-dev
-firebase apphosting:backends:create marketplace-ai-dev-backend \
-  --repo=github:YOUR_USERNAME/marketplace-ai \
-  --branch=develop
+### Monitoring Deployments
 
-firebase use marketplace-ai-staging
-firebase apphosting:backends:create marketplace-ai-staging-backend \
-  --repo=github:YOUR_USERNAME/marketplace-ai \
-  --branch=staging
+1. **Firebase Console**: View deployment status in the App Hosting section
+2. **GitHub**: See deployment status in your commit/PR status checks
+3. **Logs**: View build and runtime logs in Firebase Console
 
-firebase use marketplace-ai-prod
-firebase apphosting:backends:create marketplace-ai-backend \
-  --repo=github:YOUR_USERNAME/marketplace-ai \
-  --branch=main
-```
+## Branch Management
 
-> **Note**: Replace `YOUR_USERNAME/marketplace-ai` with your actual GitHub repository path.
+### Production Branch
+- Connect your `main` branch to your production Firebase project
+- All pushes to `main` automatically deploy to production
 
-### Step 4: Generate Firebase Service Account
+### Preview Deployments
+- Pull requests automatically create preview deployments
+- Each PR gets a unique preview URL
+- Preview deployments are automatically cleaned up when PR is closed
 
-#### Option A: Service Account File (Recommended for Local Development)
+### Multiple Environments
 
-1. Go to [Firebase Console](https://console.firebase.google.com)
-2. Select your **development** project (`marketplace-ai-dev`)
-3. Navigate to **Project Settings** > **Service Accounts**
-4. Click **Generate New Private Key**
-5. Save the downloaded file as `credentials.json` in your project root
-6. The file is already in `.gitignore` for security
+For staging/development environments:
+1. Create separate Firebase projects
+2. Connect different branches to different projects:
+   - `main` branch → Production project
+   - `develop` branch → Staging project
+   - Feature branches → Preview deployments
 
-#### Option B: Environment Variables (Recommended for Production)
+## Local Development Setup
 
-1. From the same Service Accounts page, copy the service account details
-2. You'll need: Project ID, Client Email, and Private Key
-
-### Step 5: Configure Local Environment Variables
-
-```bash
-# Copy the environment template
-cp .env.example .env.local
-
-# Edit the file with your actual values
-nano .env.local  # or use your preferred editor
-```
-
-Required variables in `.env.local`:
-
-```bash
-# Application Environment
-NODE_ENV=development
-NEXT_TELEMETRY_DISABLED=1
-NEXT_PUBLIC_APP_URL=https://localhost:3000
-
-# Auth.js v5 Configuration (generate a secure 32+ character secret)
-AUTH_SECRET=your-very-long-secure-secret-here-minimum-32-characters
-AUTH_URL=https://localhost:3000
-
-# Google OAuth Configuration
-# Get these from Google Cloud Console > APIs & Services > Credentials
-AUTH_GOOGLE_ID=your-google-oauth-client-id.apps.googleusercontent.com
-AUTH_GOOGLE_SECRET=your-google-oauth-client-secret
-
-# Firebase Admin Configuration
-FIREBASE_PROJECT_ID=marketplace-ai-dev
-FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@marketplace-ai-dev.iam.gserviceaccount.com
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYour private key here\n-----END PRIVATE KEY-----"
-
-# Firestore Database (usually "(default)" for new projects)
-FIRESTORE_DATABASE_ID=(default)
-
-# Alternative: Use service account file instead of individual env vars
-# GOOGLE_APPLICATION_CREDENTIALS=./credentials.json
-```
-
-### Step 6: Google OAuth Setup
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. Select your Firebase project
-3. Navigate to **APIs & Services** > **Credentials**
-4. Click **Create Credentials** > **OAuth 2.0 Client IDs**
-5. Configure:
-   - Application type: Web application
-   - Authorized JavaScript origins: `https://localhost:3000`
-   - Authorized redirect URIs: `https://localhost:3000/api/auth/callback/google`
-6. Copy the Client ID and Client Secret to your `.env.local`
-
-### Step 7: Update Deployment Scripts
-
-Make deployment scripts executable and update repository references:
-
-```bash
-# Make scripts executable
-chmod +x scripts/*.sh
-
-# Edit deployment script to use your repository
-sed -i 's/YOUR_USERNAME/your-actual-username/g' scripts/deploy-apphosting.sh
-```
-
-### Step 8: Test Local Setup
+### Step 1: Install Dependencies
 
 ```bash
 # Install dependencies
 npm ci
 
-# Build internationalization files
-npm run intlayer:build
-
-# Run type checking
-npm run type-check
-
-# Run linting
-npm run lint
-
-# Run tests
-npm run test
-
-# Test build process
-npm run build
+# Install Firebase CLI globally
+npm install -g firebase-tools
 ```
 
-### Step 9: Start Local Development Environment
+### Step 2: Authentication
 
 ```bash
-# Start Firebase emulators and Next.js dev server
-npm run dev:local
+# Login to Firebase
+firebase login
+
+# Select your project
+firebase use --add
 ```
 
-This command will:
-- Start Firebase emulators (Firestore, Auth, Hosting)
-- Start Next.js development server with HTTPS
-- Display URLs for all services
+### Step 3: Environment Variables
 
-Expected output:
-```
-🔥 Firebase emulator UI: http://localhost:4000
-🗄️  Firestore emulator: http://localhost:8080
-🔐 Auth emulator: http://localhost:9099
-⚡ Next.js app: https://localhost:3000
-```
-
-### Step 10: Verify Setup
-
-Test each component:
-
-```bash
-# Test environment variable management
-npm run env:list development
-
-# Test health endpoint
-curl https://localhost:3000/api/health
-
-# Test Firebase connection
-npm run config:firebase
-```
-
-## Environment-Specific Configuration
-
-### Development Environment
-
-```bash
-# Set Firebase project
-firebase use marketplace-ai-dev
-
-# Test deployment (dry run)
-npm run deploy:dev --dry-run
-```
-
-### Staging Environment
-
-Update `.env.staging` with staging-specific values:
-
-```bash
-# Copy production template
-cp .env.production .env.staging
-
-# Edit with staging values
-nano .env.staging
-
-# Deploy environment variables
-npm run env:set:staging
-```
-
-### Production Environment
-
-Update `.env.production` with production values:
-
-```bash
-# Edit production environment file
-nano .env.production
-
-# Deploy environment variables (only after testing)
-npm run env:set:production
-```
-
-## Project Structure
-
-### Configuration Files
-
-- `apphosting.yaml` - Firebase App Hosting configuration
-- `firebase.json` - Firebase services configuration
-- `.env.example` - Environment variable template
-- `.env.production` - Production environment variables
-- `.env.staging` - Staging environment variables
-
-### Scripts
-
-- `scripts/deploy-apphosting.sh` - Main deployment script
-- `scripts/dev-deploy.sh` - Local development environment
-- `scripts/manage-env-vars.sh` - Environment variable management
-
-### GitHub Actions
-
-- `.github/workflows/ci.yml` - Continuous integration
-- `.github/workflows/deploy-staging.yml` - Staging deployment
-- `.github/workflows/deploy-production.yml` - Production deployment
-
-## Environment Setup
-
-### 1. Local Development
-
-Copy the environment template:
+Create local environment file:
 ```bash
 cp .env.example .env.local
 ```
 
-Update `.env.local` with your local values:
+Update `.env.local` with your local development values:
 ```bash
 # Auth.js v5 Configuration
 AUTH_SECRET=your-local-auth-secret-minimum-32-characters
 AUTH_URL=https://localhost:3000
 
-# Google OAuth
+# Google OAuth (get from Google Cloud Console)
 AUTH_GOOGLE_ID=your-google-oauth-client-id
 AUTH_GOOGLE_SECRET=your-google-oauth-client-secret
 
@@ -328,39 +177,10 @@ FIREBASE_CLIENT_EMAIL=your-service-account@project.iam.gserviceaccount.com
 FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
 ```
 
-### 2. Production Environment
-
-Update `.env.production` with production values and deploy:
-```bash
-npm run env:set:production
-```
-
-### 3. Staging Environment
-
-Update `.env.staging` and deploy:
-```bash
-npm run env:set:staging
-```
-
-## Deployment Commands
-
-### Manual Deployment
+### Step 4: Local Development
 
 ```bash
-# Deploy to development
-npm run deploy:dev
-
-# Deploy to staging
-npm run deploy:staging
-
-# Deploy to production
-npm run deploy:production
-```
-
-### Local Development
-
-Start local development environment with Firebase emulators:
-```bash
+# Start local development with Firebase emulators
 npm run dev:local
 ```
 
@@ -369,414 +189,138 @@ This starts:
 - Firebase emulators at `http://localhost:4000`
 - Firestore emulator at `http://localhost:8080`
 
-### Environment Management
+## Environment Management
+
+### Setting Production Secrets
 
 ```bash
-# List environment variables
-npm run env:list
-
-# Set variables for specific environment
-npm run env:set:staging
+# Set all environment variables from .env.production
 npm run env:set:production
 
-# Manual management
-./scripts/manage-env-vars.sh set production .env.production
-./scripts/manage-env-vars.sh get production AUTH_SECRET
-./scripts/manage-env-vars.sh delete production OLD_VAR
+# Set individual secrets
+echo "production-secret" | firebase apphosting:secrets:set AUTH_SECRET --project=your-project-id --force
 ```
 
-## GitHub Actions Setup
+### Listing Secrets
 
-### Required Secrets
-
-Configure these secrets in your GitHub repository:
-
-#### Production Environment
-- `FIREBASE_SERVICE_ACCOUNT` - Firebase service account JSON
-- `AUTH_SECRET` - Auth.js secret key
-- `AUTH_GOOGLE_ID` - Google OAuth client ID
-- `AUTH_GOOGLE_SECRET` - Google OAuth client secret
-- `FIREBASE_PROJECT_ID` - Firebase project ID
-- `FIREBASE_CLIENT_EMAIL` - Service account email
-- `FIREBASE_PRIVATE_KEY` - Service account private key
-- `FIRESTORE_DATABASE_ID` - Firestore database ID
-
-#### Staging Environment
-Same secrets with `_STAGING` suffix:
-- `FIREBASE_SERVICE_ACCOUNT_STAGING`
-- `AUTH_SECRET_STAGING`
-- etc.
-
-### Workflow Triggers
-
-#### CI Pipeline (`ci.yml`)
-- Runs on push to `main` or `develop`
-- Runs on pull requests
-- Tests, lints, and builds the application
-
-#### Staging Deployment (`deploy-staging.yml`)
-- Triggers on push to `develop` or `staging` branches
-- Triggers on pull requests to `main`
-- Deploys to staging environment
-- Comments deployment URL on PR
-
-#### Production Deployment (`deploy-production.yml`)
-- Triggers on push to `main` branch
-- Deploys to production environment
-- Runs smoke tests after deployment
-
-## Firebase Project Configuration
-
-### 1. Create Firebase Projects
-
-Create separate projects for each environment:
 ```bash
-# Development
-firebase projects:create marketplace-ai-dev
+# List all secrets (using gcloud if available)
+npm run env:list
 
-# Staging  
-firebase projects:create marketplace-ai-staging
-
-# Production
-firebase projects:create marketplace-ai-prod
+# Get specific secret metadata
+firebase apphosting:secrets:describe AUTH_SECRET --project=your-project-id
 ```
 
-### 2. Enable App Hosting
+### Managing Secrets
 
-For each project:
 ```bash
-firebase use marketplace-ai-prod
-firebase apphosting:backends:create marketplace-ai-backend \
-  --repo=github:YOUR_USERNAME/marketplace-ai \
-  --branch=main
+# Access secret value (for debugging)
+firebase apphosting:secrets:access AUTH_SECRET --project=your-project-id
+
+# Delete a secret (be careful!)
+firebase apphosting:secrets:destroy OLD_SECRET --project=your-project-id
 ```
 
-### 3. Configure Environment Variables
+## Project Structure
 
-Use the management script or Firebase Console:
+### Configuration Files
+
+- `apphosting.yaml` - Firebase App Hosting configuration
+- `firebase.json` - Firebase services configuration (Firestore, Auth, etc.)
+- `.env.example` - Environment variable template
+- `.env.production` - Production environment variables
+- `.env.local` - Local development environment variables
+
+### Important Scripts
+
+- `npm run env:set:production` - Deploy production environment variables
+- `npm run dev:local` - Local development with emulators
+- `npm run build:apphosting` - Build command used by Firebase
+- `npm run type-check` - TypeScript validation
+
+## Testing Your Setup
+
+### Health Check
+
+Your application includes a health endpoint at `/api/health`:
+
 ```bash
-./scripts/manage-env-vars.sh set production .env.production
+# Test locally
+curl https://localhost:3000/api/health
+
+# Test production
+curl https://your-app-url.web.app/api/health
 ```
 
-## Health Monitoring
+### Build Verification
 
-The application includes a health check endpoint at `/api/health` that:
-
-- Returns application status and metadata
-- Checks service availability
-- Provides uptime information
-- Used by Firebase App Hosting for health monitoring
-
-## 🔧 Troubleshooting Local Environment Setup
-
-### Common Setup Issues
-
-#### 1. Firebase CLI Issues
-
-**Problem**: `firebase: command not found`
 ```bash
-# Solution: Install Firebase CLI globally
-npm install -g firebase-tools
-
-# Verify installation
-firebase --version
-```
-
-**Problem**: Permission denied when installing Firebase CLI
-```bash
-# Solution: Use sudo (Linux/Mac) or run as administrator (Windows)
-sudo npm install -g firebase-tools
-
-# Or use npx to run without installing globally
-npx firebase-tools --version
-```
-
-**Problem**: Firebase login fails or hangs
-```bash
-# Solution: Clear Firebase cache and retry
-firebase logout
-rm -rf ~/.config/firebase
-firebase login --reauth
-```
-
-#### 2. Environment Variable Issues
-
-**Problem**: `Invalid environment configuration` errors
-```bash
-# Check your .env.local file exists and has all required variables
-ls -la .env.local
-
-# Validate environment variables
+# Test the build process locally
 npm run type-check
-
-# Common issues:
-# - Missing AUTH_SECRET (must be 32+ characters)
-# - Incorrect FIREBASE_PRIVATE_KEY formatting (needs \n for newlines)
-# - Wrong project IDs
-```
-
-**Problem**: Firebase private key formatting errors
-```bash
-# Correct format in .env.local:
-FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYour-key-content-here\n-----END PRIVATE KEY-----"
-
-# Or use service account file instead:
-GOOGLE_APPLICATION_CREDENTIALS=./credentials.json
-```
-
-#### 3. Port Conflicts
-
-**Problem**: `Port 3000 is already in use`
-```bash
-# Find process using the port
-lsof -i :3000
-
-# Kill the process
-kill -9 <PID>
-
-# Or use different port
-PORT=3001 npm run dev
-```
-
-**Problem**: Firebase emulator ports in use
-```bash
-# Check for conflicting services
-lsof -i :4000  # Firebase UI
-lsof -i :8080  # Firestore
-lsof -i :9099  # Auth
-
-# Stop Firebase emulators
-firebase emulators:stop
-```
-
-#### 4. SSL Certificate Issues
-
-**Problem**: HTTPS certificate errors in development
-```bash
-# Regenerate certificates
-rm certificates/localhost*
-npm run dev
-
-# Or disable HTTPS temporarily
-NODE_TLS_REJECT_UNAUTHORIZED=0 npm run dev
-```
-
-#### 5. Node.js Version Issues
-
-**Problem**: Compatibility errors with Node.js version
-```bash
-# Check Node.js version (requires 18+ or 20+)
-node --version
-
-# Install correct version using nvm
-nvm install 20
-nvm use 20
-
-# Or update package.json engines field
-"engines": {
-  "node": ">=20.0.0"
-}
-```
-
-#### 6. Google OAuth Setup Issues
-
-**Problem**: OAuth redirect URI mismatch
-```
-Error: redirect_uri_mismatch
-```
-
-**Solution**:
-1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. Navigate to APIs & Services > Credentials
-3. Edit your OAuth 2.0 Client ID
-4. Add these authorized redirect URIs:
-   - `https://localhost:3000/api/auth/callback/google`
-   - `http://localhost:3000/api/auth/callback/google` (for fallback)
-
-#### 7. Firestore Connection Issues
-
-**Problem**: Cannot connect to Firestore
-```bash
-# Check if service account is properly configured
-npm run config:firebase
-
-# Test Firestore connection
-node -e "
-const { initializeApp } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
-initializeApp();
-console.log('Firestore connected successfully');
-"
-```
-
-#### 8. Build and Type Errors
-
-**Problem**: TypeScript compilation errors
-```bash
-# Clean build cache
-rm -rf .next
-rm -rf node_modules/.cache
-
-# Rebuild
-npm run intlayer:build
-npm run type-check
-```
-
-**Problem**: Intlayer build errors
-```bash
-# Clean intlayer cache
-rm -rf .intlayer
-
-# Rebuild internationalization
-npm run intlayer:build
-```
-
-### Step-by-Step Verification Checklist
-
-Use this checklist to verify your setup:
-
-```bash
-# ✅ 1. Check Node.js version
-node --version  # Should be 18+ or 20+
-
-# ✅ 2. Check Firebase CLI
-firebase --version  # Should be 13.x.x+
-
-# ✅ 3. Check Firebase authentication
-firebase projects:list  # Should show your projects
-
-# ✅ 4. Check environment file
-cat .env.local | grep -E "(AUTH_SECRET|FIREBASE_PROJECT_ID|AUTH_GOOGLE_ID)"
-
-# ✅ 5. Check dependencies
-npm list --depth=0 | grep -E "(next|react|firebase)"
-
-# ✅ 6. Test type checking
-npm run type-check
-
-# ✅ 7. Test linting
 npm run lint
-
-# ✅ 8. Test building
 npm run build
-
-# ✅ 9. Test health endpoint (after starting dev server)
-curl -k https://localhost:3000/api/health
 ```
 
-### Debug Commands for Local Environment
+## Monitoring and Debugging
 
-```bash
-# Check all environment variables loaded
-node -e "console.log(process.env)" | grep -E "(AUTH_|FIREBASE_|NODE_ENV)"
+### Viewing Logs
 
-# Test Firebase configuration
-npm run config:firebase
-
-# Check Firebase project settings
-firebase use --list
-
-# Verify App Hosting backends
-firebase apphosting:backends:list
-
-# Check emulator status
-firebase emulators:list
-
-# Test Next.js configuration
-npx next info
-
-# Check installed package versions
-npm list firebase-admin next react
-
-# Verify certificate files exist
-ls -la certificates/
-```
-
-### Getting Help
-
-If you're still experiencing issues:
-
-1. **Check the logs**: Look at console output for specific error messages
-2. **Verify prerequisites**: Ensure all required tools and accounts are set up
-3. **Test minimal setup**: Try with a fresh `.env.local` file
-4. **Check network**: Ensure no corporate firewalls block Firebase APIs
-5. **Review documentation**: Check [Firebase App Hosting docs](https://firebase.google.com/docs/app-hosting)
-
-### Common Error Messages and Solutions
-
-| Error | Solution |
-|-------|----------|
-| `FIREBASE_PRIVATE_KEY must be a valid private key string` | Check private key formatting with proper `\n` newlines |
-| `Cannot find module 'firebase-admin'` | Run `npm ci` to install dependencies |
-| `Port 3000 is already in use` | Kill existing process or use different port |
-| `redirect_uri_mismatch` | Update Google OAuth redirect URIs in Cloud Console |
-| `Project not found or insufficient permissions` | Check Firebase project ID and service account permissions |
-| `EACCES: permission denied` | Use `sudo` for global npm installs or check file permissions |
-
-## Troubleshooting Deployment Issues
+1. **Firebase Console**: App Hosting → Your backend → Logs
+2. **Real-time logs**: Available during deployment and runtime
+3. **Error tracking**: Integrated with Google Cloud Error Reporting
 
 ### Debug Commands
 
 ```bash
-# Check Firebase authentication
-firebase auth:list
-
-# List Firebase projects
+# Check Firebase project status
 firebase projects:list
 
-# Check App Hosting backends
+# List App Hosting backends
 firebase apphosting:backends:list
 
-# View deployment logs
-firebase apphosting:backends:get marketplace-ai-backend --logs
+# Get backend details and logs
+firebase apphosting:backends:get your-backend-id
 ```
 
-### Logs and Monitoring
+## Troubleshooting
 
-- **Application logs**: Available in Firebase Console
-- **Build logs**: Available in GitHub Actions
-- **Health monitoring**: `/api/health` endpoint
-- **Error tracking**: Configured via Winston logger
+### Common Issues
 
-## Security Considerations
+1. **Build Failures**
+   - Check build logs in Firebase Console
+   - Ensure all dependencies are in `package.json`
+   - Verify build commands in `apphosting.yaml`
 
-1. **Environment Variables**
-   - Use Firebase secrets for sensitive data
-   - Never commit `.env.local` or production files
-   - Rotate secrets regularly
+2. **Environment Variable Issues**
+   - Verify secrets are set: `firebase apphosting:secrets:describe SECRET_NAME`
+   - Check secret references in `apphosting.yaml`
+   - Ensure proper secret naming
 
-2. **Authentication**
-   - Use service accounts with minimal permissions
-   - Enable MFA on Firebase and Google Cloud accounts
-   - Regularly review access permissions
+3. **Runtime Errors**
+   - Check runtime logs in Firebase Console
+   - Verify health endpoint: `/api/health`
+   - Test locally with same environment
 
-3. **Network Security**
-   - Firebase App Hosting provides HTTPS by default
-   - Configure CORS appropriately
-   - Use Firebase Security Rules for Firestore
-
-## Performance Optimization
-
-1. **Build Optimization**
-   - Next.js 15 with Turbopack for faster builds
-   - Tree shaking and code splitting enabled
-   - Image optimization with next/image
-
-2. **Runtime Performance**
-   - Server-side rendering for better SEO
-   - Automatic caching via Firebase CDN
-   - Optimized bundle sizes
-
-3. **Scaling Configuration**
-   - Auto-scaling based on traffic (configured in `apphosting.yaml`)
-   - Memory and CPU allocation optimization
-   - Concurrency settings for optimal performance
-
-## Support and Resources
+### Getting Help
 
 - [Firebase App Hosting Documentation](https://firebase.google.com/docs/app-hosting)
-- [Next.js 15 Documentation](https://nextjs.org/docs)
-- [GitHub Actions Documentation](https://docs.github.com/en/actions)
-- [Auth.js v5 Documentation](https://authjs.dev/)
+- [Firebase Console](https://console.firebase.google.com)
+- [GitHub Repository Issues](https://github.com/your-username/marketplace-ai/issues)
 
-For project-specific issues, check the GitHub repository issues or create a new issue with detailed information about the problem.
+## Key Differences from Manual Deployment
+
+❌ **Don't do this** (old approach):
+```bash
+# These commands are NOT needed for Firebase App Hosting
+firebase deploy
+firebase apphosting:backends:create
+npm run deploy:production
+```
+
+✅ **Do this instead** (Firebase App Hosting approach):
+1. Push your code to the connected GitHub branch
+2. Firebase automatically builds and deploys
+3. Monitor deployment in Firebase Console
+4. Use secrets for environment variables
+
+Firebase App Hosting handles all deployment automation for you!

@@ -433,30 +433,53 @@ npm run test:ui
 
 ## 🚀 Deployment
 
-### Build for Production
-```bash
-# Build Intlayer dictionaries
-npm run intlayer:build
+This project uses **Firebase App Hosting** for automatic deployments. See the detailed [Firebase App Hosting Deployment Guide](./docs/firebase-app-hosting-deployment.md) for complete setup instructions.
 
-# Create production build
-npm run build
+### Automatic Deployments
 
-# Test production build locally
-npm start
-```
+Firebase App Hosting automatically deploys when you push to your connected GitHub branch:
+
+- **Production**: Push to `main` branch → automatic production deployment
+- **Preview**: Create pull requests → automatic preview deployments
+- **No manual deployment commands needed**
 
 ### Environment Setup
-1. Set all required environment variables
-2. Use individual Firebase environment variables (not service account file)
-3. Deploy Firestore security rules
-4. Verify authentication configuration
+
+```bash
+# Set production environment variables/secrets
+npm run env:set:production
+
+# Verify secrets are configured
+npm run env:list
+```
+
+### Local Development
+
+```bash
+# Start local development with Firebase emulators
+npm run dev:local
+
+# Test production build locally
+npm run build:apphosting
+```
 
 ### Deployment Checklist
-- [ ] All environment variables configured
-- [ ] Firestore security rules deployed
-- [ ] Firebase project has proper IAM permissions
-- [ ] Build passes without errors
-- [ ] Tests pass with required coverage
+
+- [ ] **Repository connected** to Firebase App Hosting
+- [ ] **Environment variables/secrets** configured (`npm run env:set:production`)
+- [ ] **Firestore security rules** deployed (`npm run deploy:firestore-rules`)
+- [ ] **Build passes** locally (`npm run build`)
+- [ ] **Tests pass** with required coverage (`npm run test:coverage`)
+- [ ] **apphosting.yaml** configured with correct build commands
+
+### Manual Steps (One-time setup)
+
+1. **Connect repository** to Firebase App Hosting via Firebase Console
+2. **Configure secrets** using `npm run env:set:production`
+3. **Deploy Firestore rules** using `npm run deploy:firestore-rules`
+4. **Push to main branch** for automatic deployment
+
+> **Note**: Unlike traditional hosting, Firebase App Hosting handles all deployment automation. You don't need deployment scripts or GitHub Actions - just push your code!
 
 ## 📚 Learn More
 

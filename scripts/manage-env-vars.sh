@@ -21,8 +21,8 @@ VAR_FILE=${3:-}
 # Environment to Firebase project mapping
 case $ENVIRONMENT in
     "production")
-        PROJECT_ID="marketplace-ai-prod"
-        BACKEND_ID="marketplace-ai-backend"
+        PROJECT_ID="project-jz-464301"
+        BACKEND_ID="project-jz-test-backend"
         ;;
     "staging")
         PROJECT_ID="marketplace-ai-staging"
@@ -71,7 +71,7 @@ case $ACTION in
             value=$(echo "$value" | sed 's/^"//;s/"$//')
             
             echo -e "${BLUE}Setting $key...${NC}"
-            firebase apphosting:secrets:set $key --project=$PROJECT_ID --backend=$BACKEND_ID --value="$value"
+            echo "$value" | firebase apphosting:secrets:set --project=$PROJECT_ID --force $key
         done < "$VAR_FILE"
         
         echo -e "${GREEN}✅ Environment variables set successfully!${NC}"
@@ -86,7 +86,7 @@ case $ACTION in
         fi
         
         echo -e "${YELLOW}🔍 Getting environment variable: $VAR_NAME${NC}"
-        firebase apphosting:secrets:describe $VAR_NAME --project=$PROJECT_ID --backend=$BACKEND_ID
+        firebase apphosting:secrets:describe $VAR_NAME --project=$PROJECT_ID
         ;;
         
     "delete")
@@ -98,13 +98,18 @@ case $ACTION in
         fi
         
         echo -e "${YELLOW}🗑️  Deleting environment variable: $VAR_NAME${NC}"
-        firebase apphosting:secrets:destroy $VAR_NAME --project=$PROJECT_ID --backend=$BACKEND_ID
+        firebase apphosting:secrets:destroy $VAR_NAME --project=$PROJECT_ID
         echo -e "${GREEN}✅ Variable deleted successfully!${NC}"
         ;;
         
     "list"|*)
         echo -e "${YELLOW}📋 Listing environment variables for $ENVIRONMENT...${NC}"
-        firebase apphosting:secrets:list --project=$PROJECT_ID --backend=$BACKEND_ID
+        echo -e "${BLUE}Note: Firebase App Hosting doesn't have a dedicated secrets list command.${NC}"
+        echo -e "${BLUE}Using gcloud to list secrets for project $PROJECT_ID:${NC}"
+        gcloud secrets list --project=$PROJECT_ID --filter="labels.firebase-apphosting=true OR name~'.*'" --format="table(name,createTime,updateTime)" 2>/dev/null || {
+            echo -e "${YELLOW}⚠️  gcloud not available or not authenticated. Cannot list secrets.${NC}"
+            echo -e "${BLUE}You can list secrets manually using: gcloud secrets list --project=$PROJECT_ID${NC}"
+        }
         ;;
 esac
 
