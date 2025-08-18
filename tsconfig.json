@@ -63,6 +63,8 @@
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/*.spec.ts",
-    "**/*.spec.tsx"
+    "**/*.spec.tsx",
+    "**/*._*.ts",
+    "**/*._*.tsx"
   ]
 }
