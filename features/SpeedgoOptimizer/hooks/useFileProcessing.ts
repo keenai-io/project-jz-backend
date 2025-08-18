@@ -1,11 +1,9 @@
 'use client'
 
 import { useState, useCallback } from 'react';
-import { 
-  ProcessSpeedgoXlsx, 
-  transformExcelDataToCategorizationRequest,
-  useProductCategorization 
-} from '@features/SpeedgoOptimizer';
+import ProcessSpeedgoXlsx from '@features/SpeedgoOptimizer/application/ProcessSpeedgoXlsx';
+import { transformExcelDataToCategorizationRequest } from '@features/SpeedgoOptimizer/application/transformExcelData';
+import { useProductCategorization } from '@features/SpeedgoOptimizer/hooks/useProductCategorization';
 import { CategoryResponseItem } from '@features/SpeedgoOptimizer/domain/schemas/CategoryResponse';
 import { useIntlayer, useLocale } from 'next-intlayer';
 import { Locales } from 'intlayer';

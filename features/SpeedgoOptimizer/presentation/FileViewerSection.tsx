@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactElement } from 'react';
-import { PreviewTable } from '@features/SpeedgoOptimizer';
+import PreviewTable from '@features/SpeedgoOptimizer/presentation/PreviewTable';
 import { useIntlayer } from 'next-intlayer';
 import { RowData } from '@tanstack/table-core';
 

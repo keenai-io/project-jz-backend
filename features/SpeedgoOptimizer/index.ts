@@ -1,22 +1,11 @@
-// Application Services
-export {default as ProcessSpeedgoXlsx} from "@features/SpeedgoOptimizer/application/ProcessSpeedgoXlsx"
-export {submitProductCategorization} from "@features/SpeedgoOptimizer/application/submitProductCategorization"
-export {transformExcelDataToCategorizationRequest} from "@features/SpeedgoOptimizer/application/transformExcelData"
-export {exportCategorizationResultsToExcel, isExportSupported, getEstimatedExportSize, formatFileSize} from "@features/SpeedgoOptimizer/application/exportCategorizationResults"
+/**
+ * SpeedgoOptimizer Feature Public API
+ * 
+ * This module exports the minimal public interface for the SpeedgoOptimizer feature.
+ * After creating SpeedgoOptimizerView as the main entry point, most components and
+ * services are now used internally and don't need to be part of the public API.
+ */
 
-// Presentation Components
-export {default as PreviewTable} from "@features/SpeedgoOptimizer/presentation/PreviewTable"
-export {default as CategoryResultsTable} from "@features/SpeedgoOptimizer/presentation/CategoryResultsTable"
-export {FileUploadArea} from "@features/SpeedgoOptimizer/presentation/FileUploadArea"
-export {UploadedFilesList} from "@features/SpeedgoOptimizer/presentation/UploadedFilesList"
-export {FileProcessingSection} from "@features/SpeedgoOptimizer/presentation/FileProcessingSection"
-export {FileLanguageSelector} from "@features/SpeedgoOptimizer/presentation/FileLanguageSelector"
-export {FileViewerSection} from "@features/SpeedgoOptimizer/presentation/FileViewerSection"
-export {CategorizationResultsSection} from "@features/SpeedgoOptimizer/presentation/CategorizationResultsSection"
-export {IndividualFileStatusSection} from "@features/SpeedgoOptimizer/presentation/IndividualFileStatusSection"
-
-// Hooks
-export {useProductCategorization} from "@features/SpeedgoOptimizer/hooks/useProductCategorization"
-export {useFileManagement} from "@features/SpeedgoOptimizer/hooks/useFileManagement"
-export {useFileProcessing} from "@features/SpeedgoOptimizer/hooks/useFileProcessing"
+// Main Feature View - Primary Public API
+export {SpeedgoOptimizerView} from "@features/SpeedgoOptimizer/presentation/SpeedgoOptimizerView"
 

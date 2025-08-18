@@ -11,7 +11,7 @@ if (typeof global.TextEncoder === 'undefined') {
 }
 
 import { describe, it, expect, vi } from 'vitest';
-import { transformExcelDataToCategorizationRequest } from '@features/SpeedgoOptimizer';
+import { transformExcelDataToCategorizationRequest } from '@features/SpeedgoOptimizer/application/transformExcelData';
 import { RowData } from '@tanstack/table-core';
 import { Locales } from 'intlayer';
 import { ZodError } from 'zod';

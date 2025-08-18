@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactElement } from 'react';
-import { CategoryResultsTable } from '@features/SpeedgoOptimizer';
+import CategoryResultsTable from '@features/SpeedgoOptimizer/presentation/CategoryResultsTable';
 import { CategoryResponseItem } from '@features/SpeedgoOptimizer/domain/schemas/CategoryResponse';
 import { XMarkIcon } from '@heroicons/react/16/solid';
 import { useIntlayer } from 'next-intlayer';

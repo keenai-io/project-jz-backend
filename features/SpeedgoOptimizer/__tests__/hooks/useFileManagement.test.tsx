@@ -8,8 +8,8 @@ import { renderHook, act } from '@testing-library/react';
 import { useFileManagement } from '../../hooks/useFileManagement';
 
 // Mock dependencies
-vi.mock('@features/SpeedgoOptimizer', () => ({
-  ProcessSpeedgoXlsx: vi.fn()
+vi.mock('@features/SpeedgoOptimizer/application/ProcessSpeedgoXlsx', () => ({
+  default: vi.fn()
 }));
 
 vi.mock('@/lib/logger.client', () => ({
@@ -105,7 +105,7 @@ describe('useFileManagement', () => {
      * Tests that preview is cleared when adding new files.
      */
     it('should clear preview when adding new files', async () => {
-      const { ProcessSpeedgoXlsx } = vi.mocked(await import('@features/SpeedgoOptimizer'));
+      const ProcessSpeedgoXlsx = vi.mocked(await import('@features/SpeedgoOptimizer/application/ProcessSpeedgoXlsx')).default;
       ProcessSpeedgoXlsx.mockResolvedValue(mockRowData);
 
       const { result } = renderHook(() => useFileManagement());
@@ -179,7 +179,7 @@ describe('useFileManagement', () => {
      * Tests that preview is cleared when deleting files.
      */
     it('should clear preview when deleting files', async () => {
-      const { ProcessSpeedgoXlsx } = vi.mocked(await import('@features/SpeedgoOptimizer'));
+      const ProcessSpeedgoXlsx = vi.mocked(await import('@features/SpeedgoOptimizer/application/ProcessSpeedgoXlsx')).default;
       ProcessSpeedgoXlsx.mockResolvedValue(mockRowData);
 
       const { result } = renderHook(() => useFileManagement());
@@ -232,7 +232,7 @@ describe('useFileManagement', () => {
      * Tests successful file preview.
      */
     it('should preview file successfully', async () => {
-      const { ProcessSpeedgoXlsx } = vi.mocked(await import('@features/SpeedgoOptimizer'));
+      const ProcessSpeedgoXlsx = vi.mocked(await import('@features/SpeedgoOptimizer/application/ProcessSpeedgoXlsx')).default;
       ProcessSpeedgoXlsx.mockResolvedValue(mockRowData);
 
       const { result } = renderHook(() => useFileManagement());
@@ -256,7 +256,7 @@ describe('useFileManagement', () => {
      * Tests preview with large dataset (pagination).
      */
     it('should limit preview to first 100 rows', async () => {
-      const { ProcessSpeedgoXlsx } = vi.mocked(await import('@features/SpeedgoOptimizer'));
+      const ProcessSpeedgoXlsx = vi.mocked(await import('@features/SpeedgoOptimizer/application/ProcessSpeedgoXlsx')).default;
       
       // Create 150 rows of mock data
       const largeDataset = Array.from({ length: 150 }, (_, i) => ({
@@ -287,7 +287,7 @@ describe('useFileManagement', () => {
      * Tests preview error handling.
      */
     it('should handle preview errors gracefully', async () => {
-      const { ProcessSpeedgoXlsx } = vi.mocked(await import('@features/SpeedgoOptimizer'));
+      const ProcessSpeedgoXlsx = vi.mocked(await import('@features/SpeedgoOptimizer/application/ProcessSpeedgoXlsx')).default;
       const clientLogger = vi.mocked(await import('@/lib/logger.client')).default;
       
       const previewError = new Error('File processing failed');
@@ -319,7 +319,7 @@ describe('useFileManagement', () => {
      * Tests preview with invalid file index.
      */
     it('should handle invalid file index', async () => {
-      const { ProcessSpeedgoXlsx } = vi.mocked(await import('@features/SpeedgoOptimizer'));
+      const ProcessSpeedgoXlsx = vi.mocked(await import('@features/SpeedgoOptimizer/application/ProcessSpeedgoXlsx')).default;
       
       const { result } = renderHook(() => useFileManagement());
 
@@ -341,7 +341,7 @@ describe('useFileManagement', () => {
      * Tests sequential preview operations.
      */
     it('should handle sequential preview operations', async () => {
-      const { ProcessSpeedgoXlsx } = vi.mocked(await import('@features/SpeedgoOptimizer'));
+      const ProcessSpeedgoXlsx = vi.mocked(await import('@features/SpeedgoOptimizer/application/ProcessSpeedgoXlsx')).default;
       ProcessSpeedgoXlsx.mockResolvedValue(mockRowData);
 
       const { result } = renderHook(() => useFileManagement());
@@ -373,7 +373,7 @@ describe('useFileManagement', () => {
      * Tests that all operations maintain consistent state.
      */
     it('should maintain consistent state across operations', async () => {
-      const { ProcessSpeedgoXlsx } = vi.mocked(await import('@features/SpeedgoOptimizer'));
+      const ProcessSpeedgoXlsx = vi.mocked(await import('@features/SpeedgoOptimizer/application/ProcessSpeedgoXlsx')).default;
       ProcessSpeedgoXlsx.mockResolvedValue(mockRowData);
 
       const { result } = renderHook(() => useFileManagement());

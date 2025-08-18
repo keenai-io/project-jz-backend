@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react';
-import { ProcessSpeedgoXlsx } from '@features/SpeedgoOptimizer';
+import ProcessSpeedgoXlsx from '@features/SpeedgoOptimizer/application/ProcessSpeedgoXlsx';
 import { RowData } from '@tanstack/table-core';
 import clientLogger from '@/lib/logger.client';
 
