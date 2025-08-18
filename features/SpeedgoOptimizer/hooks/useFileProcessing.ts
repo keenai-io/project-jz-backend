@@ -33,6 +33,7 @@ export function useFileProcessing() {
   const [processingResult, setProcessingResult] = useState<string | null>(null);
   const [categorizationResults, setCategorizationResults] = useState<CategoryResponseItem[] | null>(null);
   const [individualResults, setIndividualResults] = useState<FileProcessingResult[]>([]);
+  const [selectedLanguage, setSelectedLanguage] = useState<Locales | null>(null);
   const { locale } = useLocale();
   const content = useIntlayer<'use-file-processing'>('use-file-processing');
   const categorizationMutation = useProductCategorization();
@@ -115,9 +116,11 @@ export function useFileProcessing() {
           const dataToAdd = processedData.slice(0, remainingCapacity);
           
           // Transform the data for the categorization API
+          // Use selected language or fallback to current locale
+          const languageToUse = selectedLanguage || (locale as Locales);
           const categorizationRequest = transformExcelDataToCategorizationRequest(
             dataToAdd, 
-            locale as Locales
+            languageToUse
           );
 
           // Submit to categorization API for this individual file
@@ -256,6 +259,8 @@ export function useFileProcessing() {
     categorizationResults,
     individualResults,
     isProcessing: categorizationMutation.isPending,
+    selectedLanguage,
+    setSelectedLanguage,
     handleProcessFiles
   };
 }

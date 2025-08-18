@@ -35,6 +35,8 @@ export default function Home(): ReactElement {
     categorizationResults,
     individualResults,
     isProcessing,
+    selectedLanguage,
+    setSelectedLanguage,
     handleProcessFiles
   } = useFileProcessing();
 
@@ -80,6 +82,8 @@ export default function Home(): ReactElement {
             fileCount={files.length}
             isProcessing={isProcessing}
             processingResult={processingResult}
+            selectedLanguage={selectedLanguage}
+            onLanguageChange={setSelectedLanguage}
             onProcessFiles={onProcessFiles}
           />
         </div>

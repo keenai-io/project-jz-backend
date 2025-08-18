@@ -118,7 +118,6 @@ export function createEnhancedFirestoreAdapter(): EnhancedAdapter {
       const firestore = getFirestoreAdminInstance();
       await firestore.collection('users').doc(userId).update({
         lastLogin: new Date(),
-        updatedAt: new Date(),
       });
       
       serverLogger.info('Updated user last login timestamp', 'auth', {

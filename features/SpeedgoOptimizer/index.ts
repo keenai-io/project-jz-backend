@@ -10,6 +10,7 @@ export {default as CategoryResultsTable} from "@features/SpeedgoOptimizer/presen
 export {FileUploadArea} from "@features/SpeedgoOptimizer/presentation/FileUploadArea"
 export {UploadedFilesList} from "@features/SpeedgoOptimizer/presentation/UploadedFilesList"
 export {FileProcessingSection} from "@features/SpeedgoOptimizer/presentation/FileProcessingSection"
+export {FileLanguageSelector} from "@features/SpeedgoOptimizer/presentation/FileLanguageSelector"
 export {FileViewerSection} from "@features/SpeedgoOptimizer/presentation/FileViewerSection"
 export {CategorizationResultsSection} from "@features/SpeedgoOptimizer/presentation/CategorizationResultsSection"
 export {IndividualFileStatusSection} from "@features/SpeedgoOptimizer/presentation/IndividualFileStatusSection"

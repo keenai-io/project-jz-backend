@@ -4,6 +4,8 @@ import { ReactElement } from 'react';
 import { Button } from '@components/ui/button';
 import { Text } from '@components/ui/text';
 import { useIntlayer } from 'next-intlayer';
+import { Locales } from 'intlayer';
+import { FileLanguageSelector } from './FileLanguageSelector';
 
 interface FileProcessingSectionProps {
   /** Number of files ready for processing */
@@ -12,6 +14,10 @@ interface FileProcessingSectionProps {
   isProcessing: boolean;
   /** Processing result message to display */
   processingResult?: string | null;
+  /** Currently selected language for file processing */
+  selectedLanguage: Locales | null;
+  /** Callback when language selection changes */
+  onLanguageChange: (language: Locales) => void;
   /** Callback when process button is clicked */
   onProcessFiles: () => Promise<void>;
 }
@@ -26,6 +32,8 @@ export function FileProcessingSection({
   fileCount,
   isProcessing,
   processingResult,
+  selectedLanguage,
+  onLanguageChange,
   onProcessFiles
 }: FileProcessingSectionProps): ReactElement {
   const content = useIntlayer<'file-processing-section'>('file-processing-section');
@@ -39,6 +47,15 @@ export function FileProcessingSection({
         <Text className="text-gray-600">
           {content.description.value}
         </Text>
+      </div>
+      
+      {/* File Language Selection */}
+      <div className="w-full max-w-xs">
+        <FileLanguageSelector
+          selectedLanguage={selectedLanguage}
+          onLanguageChange={onLanguageChange}
+          disabled={isProcessing}
+        />
       </div>
       
       <Button
