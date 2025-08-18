@@ -18,13 +18,13 @@ export async function saveUserConfiguration(configData: ConfigurationForm): Prom
   try {
     // Check authentication
     const session = await auth()
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       serverLogger.warn('Attempted to save configuration without authentication', 'auth')
       redirect('/signin')
     }
 
     // Delegate to ConfigurationService for business logic
-    await ConfigurationService.saveUserConfiguration(session.user.email, configData)
+    await ConfigurationService.saveUserConfiguration(session.user.id, configData)
 
   } catch (error) {
     // Handle NextAuth redirects properly
@@ -54,13 +54,13 @@ export async function getUserConfiguration(): Promise<ConfigurationForm | null> 
   try {
     // Check authentication
     const session = await auth()
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       serverLogger.warn('Attempted to get configuration without authentication', 'auth')
       redirect('/signin')
     }
 
     // Delegate to ConfigurationService for business logic
-    return await ConfigurationService.getUserConfiguration(session.user.email)
+    return await ConfigurationService.getUserConfiguration(session.user.id)
 
   } catch (error) {
     // Handle NextAuth redirects properly
@@ -89,13 +89,13 @@ export async function deleteUserConfiguration(): Promise<void> {
   try {
     // Check authentication
     const session = await auth()
-    if (!session?.user?.email) {
+    if (!session?.user?.id) {
       serverLogger.warn('Attempted to delete configuration without authentication', 'auth')
       redirect('/signin')
     }
 
     // Delegate to ConfigurationService for business logic
-    await ConfigurationService.deleteUserConfiguration(session.user.email)
+    await ConfigurationService.deleteUserConfiguration(session.user.id)
 
   } catch (error) {
     // Handle NextAuth redirects properly

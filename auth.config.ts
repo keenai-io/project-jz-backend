@@ -50,6 +50,7 @@ export const authConfig = {
       if (token.role !== undefined && token.enabled !== undefined) {
         session.user = {
           ...session.user,
+          id: token.sub!,
           role: token.role as 'admin' | 'user',
           enabled: token.enabled as boolean,
         };

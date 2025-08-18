@@ -77,15 +77,15 @@ describe('ConfigurationService', () => {
       
       mockConfigRef.set.mockResolvedValue(undefined);
 
-      await ConfigurationService.saveUserConfiguration('user@example.com', validConfigData);
+      await ConfigurationService.saveUserConfiguration('user123', validConfigData);
 
       expect(ConfigurationValidation.validateConfigurationForm).toHaveBeenCalledWith(validConfigData);
       expect(mockDb.collection).toHaveBeenCalledWith('configurations');
-      expect(mockDb.doc).toHaveBeenCalledWith('user@example.com');
+      expect(mockDb.doc).toHaveBeenCalledWith('user123');
       expect(mockConfigRef.set).toHaveBeenCalledWith(
         expect.objectContaining({
           ...validConfigData,
-          userId: 'user@example.com',
+          userId: 'user123',
           updatedAt: expect.any(Date),
           createdAt: expect.any(Date)
         }),
@@ -104,7 +104,7 @@ describe('ConfigurationService', () => {
       });
 
       await expect(
-        ConfigurationService.saveUserConfiguration('user@example.com', validConfigData)
+        ConfigurationService.saveUserConfiguration('user123', validConfigData)
       ).rejects.toThrow();
 
       expect(mockConfigRef.set).not.toHaveBeenCalled();
@@ -121,7 +121,7 @@ describe('ConfigurationService', () => {
       mockConfigRef.set.mockRejectedValue(firestoreError);
 
       await expect(
-        ConfigurationService.saveUserConfiguration('user@example.com', validConfigData)
+        ConfigurationService.saveUserConfiguration('user123', validConfigData)
       ).rejects.toThrow('Firestore write failed');
     });
 
@@ -135,19 +135,19 @@ describe('ConfigurationService', () => {
       ConfigurationValidation.validateConfigurationForm.mockReturnValue(validConfigData);
       mockConfigRef.set.mockResolvedValue(undefined);
 
-      await ConfigurationService.saveUserConfiguration('user@example.com', validConfigData);
+      await ConfigurationService.saveUserConfiguration('user123', validConfigData);
 
       expect(serverLogger.info).toHaveBeenCalledWith(
         'Saving user configuration',
         'configuration',
-        { userId: 'user@example.com', configKeys: Object.keys(validConfigData) }
+        { userId: 'user123', configKeys: Object.keys(validConfigData) }
       );
       expect(serverLogger.info).toHaveBeenCalledWith(
         'Configuration saved successfully',
         'configuration',
         expect.objectContaining({
-          userId: 'user@example.com',
-          documentPath: 'configurations/user@example.com',
+          userId: 'user123',
+          documentPath: 'configurations/user123',
           dataKeys: expect.any(Array)
         })
       );
@@ -163,7 +163,7 @@ describe('ConfigurationService', () => {
       
       const firestoreData = {
         ...validConfigData,
-        userId: 'user@example.com',
+        userId: 'user123',
         createdAt: new Date(),
         updatedAt: new Date()
       };
@@ -176,11 +176,11 @@ describe('ConfigurationService', () => {
       mockConfigRef.get.mockResolvedValue(mockDocSnapshot);
       ConfigurationValidation.validateConfigurationForm.mockReturnValue(validConfigData);
 
-      const result = await ConfigurationService.getUserConfiguration('user@example.com');
+      const result = await ConfigurationService.getUserConfiguration('user123');
 
       expect(result).toEqual(validConfigData);
       expect(mockDb.collection).toHaveBeenCalledWith('configurations');
-      expect(mockDb.doc).toHaveBeenCalledWith('user@example.com');
+      expect(mockDb.doc).toHaveBeenCalledWith('user123');
       expect(ConfigurationValidation.validateConfigurationForm).toHaveBeenCalledWith(validConfigData);
     });
 
@@ -195,7 +195,7 @@ describe('ConfigurationService', () => {
 
       mockConfigRef.get.mockResolvedValue(mockDocSnapshot);
 
-      const result = await ConfigurationService.getUserConfiguration('user@example.com');
+      const result = await ConfigurationService.getUserConfiguration('user123');
 
       expect(result).toBeNull();
     });
@@ -211,7 +211,7 @@ describe('ConfigurationService', () => {
 
       mockConfigRef.get.mockResolvedValue(mockDocSnapshot);
 
-      const result = await ConfigurationService.getUserConfiguration('user@example.com');
+      const result = await ConfigurationService.getUserConfiguration('user123');
 
       expect(result).toBeNull();
     });
@@ -236,7 +236,7 @@ describe('ConfigurationService', () => {
       });
 
       await expect(
-        ConfigurationService.getUserConfiguration('user@example.com')
+        ConfigurationService.getUserConfiguration('user123')
       ).rejects.toThrow();
     });
 
@@ -248,7 +248,7 @@ describe('ConfigurationService', () => {
       mockConfigRef.get.mockRejectedValue(firestoreError);
 
       await expect(
-        ConfigurationService.getUserConfiguration('user@example.com')
+        ConfigurationService.getUserConfiguration('user123')
       ).rejects.toThrow('Firestore read failed');
     });
 
@@ -267,17 +267,17 @@ describe('ConfigurationService', () => {
       mockConfigRef.get.mockResolvedValue(mockDocSnapshot);
       ConfigurationValidation.validateConfigurationForm.mockReturnValue(validConfigData);
 
-      await ConfigurationService.getUserConfiguration('user@example.com');
+      await ConfigurationService.getUserConfiguration('user123');
 
       expect(serverLogger.info).toHaveBeenCalledWith(
         'Fetching user configuration',
         'configuration',
-        { userId: 'user@example.com' }
+        { userId: 'user123' }
       );
       expect(serverLogger.info).toHaveBeenCalledWith(
         'Configuration fetched successfully',
         'configuration',
-        { userId: 'user@example.com' }
+        { userId: 'user123' }
       );
     });
   });
@@ -289,10 +289,10 @@ describe('ConfigurationService', () => {
     it('should delete configuration successfully', async () => {
       mockConfigRef.delete.mockResolvedValue(undefined);
 
-      await ConfigurationService.deleteUserConfiguration('user@example.com');
+      await ConfigurationService.deleteUserConfiguration('user123');
 
       expect(mockDb.collection).toHaveBeenCalledWith('configurations');
-      expect(mockDb.doc).toHaveBeenCalledWith('user@example.com');
+      expect(mockDb.doc).toHaveBeenCalledWith('user123');
       expect(mockConfigRef.delete).toHaveBeenCalled();
     });
 
@@ -304,7 +304,7 @@ describe('ConfigurationService', () => {
       mockConfigRef.delete.mockRejectedValue(firestoreError);
 
       await expect(
-        ConfigurationService.deleteUserConfiguration('user@example.com')
+        ConfigurationService.deleteUserConfiguration('user123')
       ).rejects.toThrow('Firestore delete failed');
     });
 
@@ -316,17 +316,17 @@ describe('ConfigurationService', () => {
       
       mockConfigRef.delete.mockResolvedValue(undefined);
 
-      await ConfigurationService.deleteUserConfiguration('user@example.com');
+      await ConfigurationService.deleteUserConfiguration('user123');
 
       expect(serverLogger.info).toHaveBeenCalledWith(
         'Deleting user configuration',
         'configuration',
-        { userId: 'user@example.com' }
+        { userId: 'user123' }
       );
       expect(serverLogger.info).toHaveBeenCalledWith(
         'Configuration deleted successfully',
         'configuration',
-        { userId: 'user@example.com' }
+        { userId: 'user123' }
       );
     });
   });

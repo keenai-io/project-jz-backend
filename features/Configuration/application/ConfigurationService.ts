@@ -15,16 +15,16 @@ export class ConfigurationService {
   /**
    * Save user configuration to Firestore
    * 
-   * @param userEmail - The authenticated user's email
+   * @param userId - The authenticated user's ID
    * @param configData - The configuration form data to save
    * @throws {Error} If validation or save fails
    */
   static async saveUserConfiguration(
-    userEmail: string, 
+    userId: string, 
     configData: ConfigurationForm
   ): Promise<void> {
     serverLogger.info('Saving user configuration', 'configuration', { 
-      userId: userEmail,
+      userId: userId,
       configKeys: Object.keys(configData) 
     })
 
@@ -34,12 +34,12 @@ export class ConfigurationService {
     // Get Firestore instance
     const db = getFirestoreInstance()
     
-    // Save to Firestore with user email as document ID
-    const configRef = db.collection('configurations').doc(userEmail)
+    // Save to Firestore with user ID as document ID
+    const configRef = db.collection('configurations').doc(userId)
     
     const configDocument = {
       ...validatedConfig,
-      userId: userEmail,
+      userId: userId,
       updatedAt: new Date(),
       createdAt: new Date() // Will be overwritten if document exists
     }
@@ -48,8 +48,8 @@ export class ConfigurationService {
     await configRef.set(configDocument, { merge: true })
 
     serverLogger.info('Configuration saved successfully', 'configuration', { 
-      userId: userEmail,
-      documentPath: `configurations/${userEmail}`,
+      userId: userId,
+      documentPath: `configurations/${userId}`,
       dataKeys: Object.keys(configDocument)
     })
   }
@@ -57,32 +57,32 @@ export class ConfigurationService {
   /**
    * Get user configuration from Firestore
    * 
-   * @param userEmail - The authenticated user's email
+   * @param userId - The authenticated user's ID
    * @returns {Promise<ConfigurationForm | null>} The user's configuration or null
    * @throws {Error} If fetch fails
    */
-  static async getUserConfiguration(userEmail: string): Promise<ConfigurationForm | null> {
+  static async getUserConfiguration(userId: string): Promise<ConfigurationForm | null> {
     serverLogger.info('Fetching user configuration', 'configuration', { 
-      userId: userEmail 
+      userId: userId 
     })
 
     // Get Firestore instance
     const db = getFirestoreInstance()
     
     // Get configuration document
-    const configRef = db.collection('configurations').doc(userEmail)
+    const configRef = db.collection('configurations').doc(userId)
     const configDoc = await configRef.get()
 
     serverLogger.info('Document fetch result', 'configuration', { 
-      userId: userEmail,
-      documentPath: `configurations/${userEmail}`,
+      userId: userId,
+      documentPath: `configurations/${userId}`,
       exists: configDoc.exists,
       hasData: !!configDoc.data()
     })
 
     if (!configDoc.exists) {
       serverLogger.info('No configuration found for user', 'configuration', { 
-        userId: userEmail 
+        userId: userId 
       })
       return null
     }
@@ -100,7 +100,7 @@ export class ConfigurationService {
     const validatedConfig = ConfigurationValidation.validateConfigurationForm(cleanConfig)
 
     serverLogger.info('Configuration fetched successfully', 'configuration', { 
-      userId: userEmail 
+      userId: userId 
     })
 
     return validatedConfig
@@ -109,23 +109,23 @@ export class ConfigurationService {
   /**
    * Delete user configuration from Firestore
    * 
-   * @param userEmail - The authenticated user's email
+   * @param userId - The authenticated user's ID
    * @throws {Error} If delete fails
    */
-  static async deleteUserConfiguration(userEmail: string): Promise<void> {
+  static async deleteUserConfiguration(userId: string): Promise<void> {
     serverLogger.info('Deleting user configuration', 'configuration', { 
-      userId: userEmail 
+      userId: userId 
     })
 
     // Get Firestore instance
     const db = getFirestoreInstance()
     
     // Delete configuration document
-    const configRef = db.collection('configurations').doc(userEmail)
+    const configRef = db.collection('configurations').doc(userId)
     await configRef.delete()
 
     serverLogger.info('Configuration deleted successfully', 'configuration', { 
-      userId: userEmail 
+      userId: userId 
     })
   }
 }
