@@ -22,7 +22,7 @@ VAR_FILE=${3:-}
 case $ENVIRONMENT in
     "production")
         PROJECT_ID="project-jz-464301"
-        BACKEND_ID="project-jz-test-backend"
+        BACKEND_ID="project-jz-backend"
         ;;
     "staging")
         PROJECT_ID="marketplace-ai-staging"
@@ -72,6 +72,7 @@ case $ACTION in
             
             echo -e "${BLUE}Setting $key...${NC}"
             echo "$value" | firebase apphosting:secrets:set --project=$PROJECT_ID --force $key
+            firebase apphosting:secrets:grantaccess --backend=$BACKEND_ID $key
         done < "$VAR_FILE"
         
         echo -e "${GREEN}✅ Environment variables set successfully!${NC}"

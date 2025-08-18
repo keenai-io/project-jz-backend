@@ -1,5 +1,4 @@
 'use client'
-import { redirect } from 'next/navigation';
 import { useIntlayer } from 'next-intlayer';
 import { Heading } from '@components/ui/heading';
 import { Text } from '@components/ui/text';
@@ -9,16 +8,6 @@ import {useSession} from "next-auth/react";
 export default function PendingApprovalPage(): React.ReactElement {
   const {data: session} = useSession();
   const content = useIntlayer<'pending-approval'>('pending-approval');
-  
-  // If not authenticated, redirect to sign in
-  if (!session?.user) {
-    redirect('/signin');
-  }
-  
-  // If user is enabled, they shouldn't be here - redirect to home
-  if (session.user.enabled) {
-    redirect('/');
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -64,7 +53,7 @@ export default function PendingApprovalPage(): React.ReactElement {
           
           <div className="mt-6 text-center text-xs text-gray-400 dark:text-gray-500">
             <Text>
-              Signed in as: {session.user.email}
+              Signed in as: {session?.user.email}
             </Text>
           </div>
         </div>
