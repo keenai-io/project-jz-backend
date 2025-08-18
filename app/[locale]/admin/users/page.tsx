@@ -6,10 +6,7 @@
  */
 
 import { ReactElement } from 'react'
-import { 
-  AdminLayout, 
-  UserManagementTable 
-} from '@/features/UserManagement'
+import { AdminUsersView } from '@/features/UserManagement'
 
 /**
  * Admin Users Page Component
@@ -18,14 +15,7 @@ import {
  * Protected by middleware to ensure only admins can access.
  */
 export default function AdminUsersPage(): ReactElement {
-  return (
-    <AdminLayout
-      title="User Management"
-      description="Manage user accounts, roles, and access permissions"
-    >
-      <UserManagementTable />
-    </AdminLayout>
-  )
+  return <AdminUsersView />
 }
 
 /**
