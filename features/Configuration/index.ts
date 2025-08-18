@@ -1,25 +1,13 @@
-// Configuration Feature Public API
+/**
+ * Configuration Feature Public API
+ * 
+ * This module exports the minimal public interface for the Configuration feature.
+ * Internal components, hooks, and domain objects are used internally and don't 
+ * need to be part of the public API.
+ */
 
-// Domain exports
-export {
-  type Configuration,
-  type ConfigurationForm,
-  type ConfigurationId,
-  type SeoConfiguration,
-  type ImageConfiguration,
-  type ImageRotationDirection,
-  ConfigurationSchema,
-  ConfigurationFormSchema,
-  ConfigurationValidation,
-  DEFAULT_BANNED_WORDS,
-} from './domain/schemas/ConfigurationSchemas';
-
-// Presentation exports
+// Main UI Component - Primary Public API
 export { ConfigurationModal } from './presentation/ConfigurationModal';
-export { default as configurationModalContent } from './presentation/ConfigurationModal.content';
 
-// Hooks exports
-export {
-  useUserConfiguration,
-  useUserConfigurationMutation,
-} from './hooks/useConfiguration';
+// Domain Types - Required by server actions
+export { type ConfigurationForm } from './domain/schemas/ConfigurationSchemas';

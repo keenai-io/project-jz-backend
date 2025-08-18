@@ -7,8 +7,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
-import { useUserConfiguration, useUserConfigurationMutation } from '@features/Configuration';
-import { ConfigurationForm } from '@features/Configuration';
+import { useUserConfiguration, useUserConfigurationMutation } from '@features/Configuration/hooks/useConfiguration';
+import { type ConfigurationForm } from '@features/Configuration/domain/schemas/ConfigurationSchemas';
 
 // Mock dependencies
 vi.mock('@/lib/logger.client', () => ({

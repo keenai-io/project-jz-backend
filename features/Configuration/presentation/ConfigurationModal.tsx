@@ -14,14 +14,16 @@ import {Heading} from '@components/ui/heading';
 import {Fieldset, Label, Description} from '@components/ui/fieldset';
 import {Badge} from '@components/ui/badge';
 import {XMarkIcon, PlusIcon} from '@heroicons/react/16/solid';
-import {
-  ConfigurationValidation,
-  type ConfigurationForm,
+import { 
+  ConfigurationValidation, 
+  type ConfigurationForm, 
   type ImageRotationDirection,
-  DEFAULT_BANNED_WORDS,
-  useUserConfiguration,
-  useUserConfigurationMutation
-} from '@features/Configuration';
+  DEFAULT_BANNED_WORDS 
+} from '@features/Configuration/domain/schemas/ConfigurationSchemas';
+import { 
+  useUserConfiguration, 
+  useUserConfigurationMutation 
+} from '@features/Configuration/hooks/useConfiguration';
 
 interface ConfigurationModalProps {
   /** Whether the modal is open */
